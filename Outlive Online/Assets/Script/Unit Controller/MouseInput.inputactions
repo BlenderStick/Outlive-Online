@@ -1,0 +1,109 @@
+{
+    "name": "MouseInput",
+    "maps": [
+        {
+            "name": "Mouse",
+            "id": "ca58501f-1f21-4134-8772-549c22b71ab3",
+            "actions": [
+                {
+                    "name": "SelectClick",
+                    "type": "Button",
+                    "id": "67bcbef5-7780-4e2f-b698-a543b2d21bf9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "MousePosition",
+                    "type": "PassThrough",
+                    "id": "7798faf2-8bfe-40c0-b926-8c7f1d1cb8e1",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "MouseDrag",
+                    "type": "Button",
+                    "id": "00ae7c8f-70bc-46eb-9b4f-99fe35fad0f6",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "MousePressTime",
+                    "type": "Value",
+                    "id": "386e2435-2e6c-44c0-a49f-e031ddf54400",
+                    "expectedControlType": "Double",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
+                },
+                {
+                    "name": "CommandClick",
+                    "type": "Button",
+                    "id": "494f2e6e-040d-4b8d-bb84-553ce99cc861",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "f955a3ca-64b4-4d89-b94f-67bd96dbb1c3",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SelectClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7382b1d2-15f3-42fb-bd26-6ffbb1de2e25",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MousePosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bfc6921b-5ff4-456b-823a-cae1ed6b9cfd",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MouseDrag",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bf246273-3880-4e5b-aa62-3fef452a9ecc",
+                    "path": "<Sensor>",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MousePressTime",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dc88155c-16e3-4f19-b159-c64567ca605a",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CommandClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
