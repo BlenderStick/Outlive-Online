@@ -24,7 +24,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""id"": ""67bcbef5-7780-4e2f-b698-a543b2d21bf9"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": ""Press""
+                    ""interactions"": ""Tap""
                 },
                 {
                     ""name"": ""MousePosition"",
@@ -36,19 +36,11 @@ public class @MouseInput : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": ""MouseDrag"",
-                    ""type"": ""Button"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""00ae7c8f-70bc-46eb-9b4f-99fe35fad0f6"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press""
-                },
-                {
-                    ""name"": ""MousePressTime"",
-                    ""type"": ""Value"",
-                    ""id"": ""386e2435-2e6c-44c0-a49f-e031ddf54400"",
-                    ""expectedControlType"": ""Double"",
-                    ""processors"": """",
-                    ""interactions"": ""Press(behavior=2)""
                 },
                 {
                     ""name"": ""CommandClick"",
@@ -57,6 +49,22 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""KeyAttack"",
+                    ""type"": ""Button"",
+                    ""id"": ""5987922f-3ca3-43b5-a39f-f2aa84107c2e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""KeyStop"",
+                    ""type"": ""Button"",
+                    ""id"": ""6bada699-0389-4db9-81c0-d0d0056235c7"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -95,23 +103,34 @@ public class @MouseInput : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""bf246273-3880-4e5b-aa62-3fef452a9ecc"",
-                    ""path"": ""<Sensor>"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MousePressTime"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""dc88155c-16e3-4f19-b159-c64567ca605a"",
                     ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""CommandClick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""008353a1-e2cf-460d-aeb6-1fa0cf0e9bdf"",
+                    ""path"": ""<Keyboard>/#(A)"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""KeyAttack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""14208069-4fb1-45bc-99c9-95e37c93f052"",
+                    ""path"": ""<Keyboard>/#(S)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""KeyStop"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -125,8 +144,9 @@ public class @MouseInput : IInputActionCollection, IDisposable
         m_Mouse_SelectClick = m_Mouse.FindAction("SelectClick", throwIfNotFound: true);
         m_Mouse_MousePosition = m_Mouse.FindAction("MousePosition", throwIfNotFound: true);
         m_Mouse_MouseDrag = m_Mouse.FindAction("MouseDrag", throwIfNotFound: true);
-        m_Mouse_MousePressTime = m_Mouse.FindAction("MousePressTime", throwIfNotFound: true);
         m_Mouse_CommandClick = m_Mouse.FindAction("CommandClick", throwIfNotFound: true);
+        m_Mouse_KeyAttack = m_Mouse.FindAction("KeyAttack", throwIfNotFound: true);
+        m_Mouse_KeyStop = m_Mouse.FindAction("KeyStop", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -179,8 +199,9 @@ public class @MouseInput : IInputActionCollection, IDisposable
     private readonly InputAction m_Mouse_SelectClick;
     private readonly InputAction m_Mouse_MousePosition;
     private readonly InputAction m_Mouse_MouseDrag;
-    private readonly InputAction m_Mouse_MousePressTime;
     private readonly InputAction m_Mouse_CommandClick;
+    private readonly InputAction m_Mouse_KeyAttack;
+    private readonly InputAction m_Mouse_KeyStop;
     public struct MouseActions
     {
         private @MouseInput m_Wrapper;
@@ -188,8 +209,9 @@ public class @MouseInput : IInputActionCollection, IDisposable
         public InputAction @SelectClick => m_Wrapper.m_Mouse_SelectClick;
         public InputAction @MousePosition => m_Wrapper.m_Mouse_MousePosition;
         public InputAction @MouseDrag => m_Wrapper.m_Mouse_MouseDrag;
-        public InputAction @MousePressTime => m_Wrapper.m_Mouse_MousePressTime;
         public InputAction @CommandClick => m_Wrapper.m_Mouse_CommandClick;
+        public InputAction @KeyAttack => m_Wrapper.m_Mouse_KeyAttack;
+        public InputAction @KeyStop => m_Wrapper.m_Mouse_KeyStop;
         public InputActionMap Get() { return m_Wrapper.m_Mouse; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -208,12 +230,15 @@ public class @MouseInput : IInputActionCollection, IDisposable
                 @MouseDrag.started -= m_Wrapper.m_MouseActionsCallbackInterface.OnMouseDrag;
                 @MouseDrag.performed -= m_Wrapper.m_MouseActionsCallbackInterface.OnMouseDrag;
                 @MouseDrag.canceled -= m_Wrapper.m_MouseActionsCallbackInterface.OnMouseDrag;
-                @MousePressTime.started -= m_Wrapper.m_MouseActionsCallbackInterface.OnMousePressTime;
-                @MousePressTime.performed -= m_Wrapper.m_MouseActionsCallbackInterface.OnMousePressTime;
-                @MousePressTime.canceled -= m_Wrapper.m_MouseActionsCallbackInterface.OnMousePressTime;
                 @CommandClick.started -= m_Wrapper.m_MouseActionsCallbackInterface.OnCommandClick;
                 @CommandClick.performed -= m_Wrapper.m_MouseActionsCallbackInterface.OnCommandClick;
                 @CommandClick.canceled -= m_Wrapper.m_MouseActionsCallbackInterface.OnCommandClick;
+                @KeyAttack.started -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyAttack;
+                @KeyAttack.performed -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyAttack;
+                @KeyAttack.canceled -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyAttack;
+                @KeyStop.started -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyStop;
+                @KeyStop.performed -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyStop;
+                @KeyStop.canceled -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyStop;
             }
             m_Wrapper.m_MouseActionsCallbackInterface = instance;
             if (instance != null)
@@ -227,12 +252,15 @@ public class @MouseInput : IInputActionCollection, IDisposable
                 @MouseDrag.started += instance.OnMouseDrag;
                 @MouseDrag.performed += instance.OnMouseDrag;
                 @MouseDrag.canceled += instance.OnMouseDrag;
-                @MousePressTime.started += instance.OnMousePressTime;
-                @MousePressTime.performed += instance.OnMousePressTime;
-                @MousePressTime.canceled += instance.OnMousePressTime;
                 @CommandClick.started += instance.OnCommandClick;
                 @CommandClick.performed += instance.OnCommandClick;
                 @CommandClick.canceled += instance.OnCommandClick;
+                @KeyAttack.started += instance.OnKeyAttack;
+                @KeyAttack.performed += instance.OnKeyAttack;
+                @KeyAttack.canceled += instance.OnKeyAttack;
+                @KeyStop.started += instance.OnKeyStop;
+                @KeyStop.performed += instance.OnKeyStop;
+                @KeyStop.canceled += instance.OnKeyStop;
             }
         }
     }
@@ -242,7 +270,8 @@ public class @MouseInput : IInputActionCollection, IDisposable
         void OnSelectClick(InputAction.CallbackContext context);
         void OnMousePosition(InputAction.CallbackContext context);
         void OnMouseDrag(InputAction.CallbackContext context);
-        void OnMousePressTime(InputAction.CallbackContext context);
         void OnCommandClick(InputAction.CallbackContext context);
+        void OnKeyAttack(InputAction.CallbackContext context);
+        void OnKeyStop(InputAction.CallbackContext context);
     }
 }
