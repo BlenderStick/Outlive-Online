@@ -1,13 +1,20 @@
-﻿using System.Collections;
+using System.Threading;
+using System.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using Outlive;
 
 public class Player : MonoBehaviour
 {
-    private MouseInput mouseInput;
+    // public MouseInput mouseInput;
+    // public Input input;
     public PlayerManager manager;
+    public PlayerInput defaultInput;
 
     public Color color;
 
@@ -20,67 +27,61 @@ public class Player : MonoBehaviour
     private List<UnitBehaviour> units;
     public Image selectionRectangle;
     public GameObject basicUnit;
+    private Vector2 mousePosition;
+    public GameObject GUIRoot;
+    private string currentNameGUI = "";
 
-    
-    public static int Nothing = 0;
-    public static int Attack = 1;
-    private int stateCommand;
+    private bool isEnabledSelectWithClick = true;
+    private bool isEnabledSelectBox = true;
+    private bool isEnableActionWithClick = true;
+
     public bool isDisable;
 
-    private void Awake() 
-    {
-        if(!isDisable)
-            mouseInput = new MouseInput();
-    }
+    ///<summary>
+    ///Determina se os comandos de click do mouse podem selecionar unidades.
+    ///</summary>
+    public bool EnableSelectWithClick { get => isEnabledSelectWithClick; set => isEnabledSelectWithClick = value; }
+    ///<summary>
+    ///Determina se os comandos de Drag and Drop do mouse podem criar a caixa de seleção de unidades.
+    ///</summary>
+    public bool EnableSelectBox { get => isEnabledSelectBox; set => isEnabledSelectBox = value; }
+    ///<summary>
+    ///Determina se os comandos de click do mouse podem dar ordens as unidades.
+    ///</summary>
+    public bool EnableActionWithClick { get => isEnableActionWithClick; set => isEnableActionWithClick = value; }
 
-    private void OnEnable() 
-    {
-        if(!isDisable)
-            mouseInput.Enable();
-    }
 
-    private void OnDisable() 
-    {
-        if(!isDisable)
-            mouseInput.Disable();
-    }
     // Start is called before the first frame update
     void Start()
     {
+
         if(!isDisable)
         {
-            mouseInput.Mouse.SelectClick.performed += _ => MouseClick();
-            mouseInput.Mouse.CommandClick.performed += _ => MoveUnits();
-            mouseInput.Mouse.MouseDrag.performed += _ => MouseDrag();
-            mouseInput.Mouse.MouseDrag.canceled += _ => MouseDrop();
-            mouseInput.Mouse.KeyAttack.performed += _ => SetStateCommand(Attack);
-            mouseInput.Mouse.KeyStop.performed += _ => StopSelectedUnits();
+            // Vector3Int[] vectors = MoveCommand.GenerateCircle(new Vector3(-2, 0, 5), new Vector3Int[0], 0, 10);
+            // ICollection<Vector2Int> vects = OutliveUtilites.CalculatePointsAroundInGrid(new Vector2Int(-2, 5), 10);
+            ICollection<Vector2> vects2 = OutliveUtilites.CalculatePointsAround(new Vector2Int(-2, 5), 0.5f, 20, null, 0, 0.5f);
+            // foreach (Vector3Int v in vectors)
+            // {
+            //     GameObject obj = Instantiate<GameObject>(basicUnit, v, Quaternion.Euler(0, 0, 0));
+            //     UnitBehaviour b = obj.GetComponent<UnitBehaviour>();
+            //     b.player = this;
+            // }
 
-            mouseInput.Mouse.MousePosition.performed += _ => 
-                {
-                    // isMouseMoving = true; 
-                    lastMouseMoved = Time.realtimeSinceStartup;
-                };
+            // foreach (Vector2Int v in vects)
+            // {
+            //     Vector3 pos = new Vector3(v.x, 0, v.y);
+            //     GameObject obj = Instantiate<GameObject>(basicUnit, pos, Quaternion.Euler(0, 0, 0));
+            //     UnitBehaviour b = obj.GetComponent<UnitBehaviour>();
+            //     b.player = this;
+            // }
 
-            mouseInput.Mouse.MousePosition.canceled += _ => 
-                {
-                    // isMouseMoving = false;
-                };
-            
-
-            Vector3[] vectors = MoveCommand.GenerateCircle(new Vector3(-2, 0, 5), new Vector3[0], 0, 10);
-            // int index = unitsInScene.Length;
-            // UnitBehaviour[] newUnitsInScenne = new UnitBehaviour[index + 10];
-            // System.Array.Copy(unitsInScene, newUnitsInScenne, index);
-            foreach (Vector3 v in vectors)
+            foreach (Vector2 v in vects2)
             {
-                GameObject obj = Instantiate<GameObject>(basicUnit, v, Quaternion.Euler(0, 0, 0));
+                Vector3 pos = new Vector3(v.x, 0, v.y);
+                GameObject obj = Instantiate<GameObject>(basicUnit, pos, Quaternion.Euler(0, 0, 0));
                 UnitBehaviour b = obj.GetComponent<UnitBehaviour>();
                 b.player = this;
-                // newUnitsInScenne[index] = b;
-                // index ++;
             }
-            // unitsInScene = newUnitsInScenne;
         }
         unitsInScene = GameObject.FindObjectsOfType<UnitBehaviour>();
         units = new List<UnitBehaviour>();
@@ -99,15 +100,15 @@ public class Player : MonoBehaviour
         }
         
     }
-    private void MouseClick()
+    public void SelectClick()
     {
-        Ray ray = mainCamera.ScreenPointToRay(mouseInput.Mouse.MousePosition.ReadValue<Vector2>());
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+        if (EnableSelectWithClick)
         {
-            if (hit.collider != null)
+            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit))
             {
-                if (stateCommand == Nothing)
+                if (hit.collider != null)
                 {
                     if (hit.collider.GetComponent<UnitBehaviour>() != null)
                     {
@@ -118,82 +119,92 @@ public class Player : MonoBehaviour
                     }
                     else 
                     {
-                        units.Clear();
+                        // units.Clear();
                     }
                     
                 }
-                else if (stateCommand == Attack)
+                else 
+                {
+                    // units.Clear();
+                }
+            }
+            updateUnitGUI();
+        }
+        
+    }
+
+    public bool RayCastInMap(Vector2 pointInScreen, out Vector3 surfacePoint)
+    {
+        Ray ray = mainCamera.ScreenPointToRay(pointInScreen);
+        RaycastHit hit;
+        Physics.Raycast(ray, out hit);
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.collider.gameObject.isStatic)
+            {
+                surfacePoint = hit.point;
+                return true;
+            }
+        }
+        surfacePoint = mainCamera.ScreenToWorldPoint(pointInScreen);
+        return false;
+    }
+
+    public void ActionClick()
+    {
+        if (EnableActionWithClick)
+        {
+            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider != null)
                 {
                     GameObject surface = hit.collider.gameObject;
                     if (surface.isStatic && units.Count > 0)
                     {
+                        Vector3Int target = Vector3Int.FloorToInt(
+                            new Vector3(
+                                x: hit.point.x + 0.5f,
+                                y: hit.point.y,
+                                z: hit.point.z + 0.5f));
+                        GridManager gridManager = GetComponent<GridManager>();
+                        System.Collections.Generic.IReadOnlyCollection<Vector3Int> grids = gridManager.GetGridPoints();
+                        // Vector3Int[] targetVectors = MoveCommand.points(units, grids.ToArray(), grids.Count, target);
+                        Vector3[] targetVectors = OutliveUtilites.From2DTo3DCoordinates(OutliveUtilites.CalculatePointsAround(new Vector2(hit.point.x, hit.point.z), 0.5f, units.Count, gridManager.Get2DMask(), grids.Count, 0f));
+                        int count = 0;
                         foreach(UnitBehaviour unit in units)
                         {
-                            unit.putCommand(new AttackCommand(hit.point), false);
+                            unit.putCommand(new MoveCommand(targetVectors[count]), false);
+                            count ++;
                         }
-                        
-                    }
-                    SetStateCommand(Nothing);
+                    } 
                 }
             }
-            else 
-            {
-                units.Clear();
-            }
         }
+        
     }
 
-    private void MoveUnits()
+    public void MouseDrag(InputAction.CallbackContext context)
     {
-        SetStateCommand(Nothing);
-        Ray ray = mainCamera.ScreenPointToRay(mouseInput.Mouse.MousePosition.ReadValue<Vector2>());
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
-        {
-            if (hit.collider != null)
-            {
-                // hit.normal
-                GameObject surface = hit.collider.gameObject;
-                if (surface.isStatic && units.Count > 0)
-                {
-                    Vector3Int target = Vector3Int.FloorToInt(
-                        new Vector3(
-                            x:hit.point.x + 0.5f,
-                            y: hit.point.y,
-                            z: hit.point.z + 0.5f));
-                    Debug.Log("target is: [" + target.x + ", " + target.z + "];");
-                    string text = "Points is: {\n";
-                    Vector3[] targetVectors = MoveCommand.points(units, null, 0, target);
-                    foreach (Vector3 v in targetVectors)
-                    {
-                        text += "    [" + v.x + ", " + v.z + "],\n";
-                    }
-                    text += "    };";
-                    Debug.Log(text);
-                    int count = 0;
-                    foreach(UnitBehaviour unit in units)
-                    {
-                        unit.putCommand(new MoveCommand(targetVectors[count]), false);
-                        count ++;
-                    }
-                    
-                }
-                
-            }
-        }
+        if (EnableSelectBox)
+            if(context.performed)
+                EventMouseDrag();
+            else if(context.canceled)
+                EventMouseDrop();
     }
 
-    private void MouseDrag()
+    private void EventMouseDrag() 
     {
         dragTimeStarted = Time.realtimeSinceStartup;
-        Vector2 mousePosition = mouseInput.Mouse.MousePosition.ReadValue<Vector2>();
+        Vector2 mousePosition = this.mousePosition;
         mouseDragPosition = mainCamera.ScreenToViewportPoint(mousePosition);
         // Debug.Log("Drag " + mouseDragPosition);
         drag = true;
     }
 
-    private void MouseDrop(){
-        Vector2 mousePosition = mouseInput.Mouse.MousePosition.ReadValue<Vector2>();
+    private void EventMouseDrop(){
+        Vector2 mousePosition = this.mousePosition;
         // if (Time.realtimeSinceStartup - dragTimeStarted > 0.5){
         if(lastMouseMoved > dragTimeStarted)
         {
@@ -203,9 +214,67 @@ public class Player : MonoBehaviour
             {
                 if(unit.player == this && r.Contains(mainCamera.WorldToScreenPoint(unit.transform.position)))
                     units.Add(unit);
+                    // unit.GetComponent<PlayerInput>().actionEvents
             }
+            updateUnitGUI();
         }
+        
         drag = false;
+    }
+
+    private void updateUnitGUI(){
+        List<string> names = new List<string>();
+        foreach (UnitBehaviour u in units)
+        {
+            string n = u.GetGUIName;
+            if(!names.Contains(n))
+                names.Add(n);
+        }
+        // if(GUIRoot != null)
+        // {
+            if (names.Count > 0)
+                setUnitGUI(names[0]);
+            else
+                setUnitGUI("");
+            // UnitGUI.InvokeUninstall(currentNameGUI, GUIRoot, this);
+
+            // if(names.Count > 0)
+            //     currentNameGUI = names[0];
+            // else
+            //     currentNameGUI = "";
+
+            // UnitGUI.InvokeInstall(currentNameGUI, GUIRoot, this);
+        // }
+    }
+
+    public void setUnitGUI(string name)
+    {
+        // lock (this)
+        // {
+            //  Debug.Log("Call's");
+            if(GUIRoot != null)
+            {
+                string newName = name == null? "": name;
+
+
+                UnitGUI.InvokeUninstall(currentNameGUI, GUIRoot, this);
+                
+                currentNameGUI = newName;
+                
+                UnitGUI.InvokeInstall(newName, GUIRoot, this);
+            }
+        
+        // }
+    }
+
+    public void SetMousePosition(InputAction.CallbackContext context)
+    {
+        lastMouseMoved = Time.realtimeSinceStartup;
+        mousePosition = context.ReadValue<Vector2>();
+    }
+    public Vector2 GetMousePosition()
+    {
+        return mousePosition;
     }
 
     private void drawSelectBox()
@@ -226,20 +295,12 @@ public class Player : MonoBehaviour
     /// </summary>
     private Rect getSelectBox()
     {
-        Vector2 mousePosition = mouseInput.Mouse.MousePosition.ReadValue<Vector2>();
+        Vector2 mousePosition = this.mousePosition;
         Vector2 lastMousePosition = mainCamera.ViewportToScreenPoint(mouseDragPosition);
         Vector2 p1 = new Vector2 (Mathf.Min(mousePosition.x, lastMousePosition.x), Mathf.Min(mousePosition.y, lastMousePosition.y));
         Vector2 p2 = new Vector2 (Mathf.Max(mousePosition.x, lastMousePosition.x), Mathf.Max(mousePosition.y, lastMousePosition.y));
 
         return new Rect(p1, p2 - p1);
-    }
-    ///<summary>
-    ///Define o tipo de comando que será executado pelas unidades selecionadas, como atacar, parar, construir.
-    ///
-    ///<paramref name="command"/>Tipo de comando, pode ser Nothing, Attack.
-    ///</summary>
-    private void SetStateCommand(int command){
-        this.stateCommand = command;
     }
 
     private void StopSelectedUnits(){
@@ -248,8 +309,25 @@ public class Player : MonoBehaviour
             unit.putCommand(null, false);
         }
     }
+    public T[] GetSelectedUnits<T>() where T : UnitBehaviour
+    {
+        T[] tUnits = new T[units.Count];
+        int index = 0;
+        foreach (UnitBehaviour i in units)
+        {
+            if (i is T)
+            {
+                tUnits[index] = (T) i;
+                index ++;
+            }
+        }
 
-    public UnitBehaviour[] GetUnits(){
+        T[] newTUnits = new T[index];
+        System.Array.Copy(tUnits, newTUnits, index);
+        return newTUnits;
+    }
+
+    public UnitBehaviour[] GetSelectedUnits(){
         return units.ToArray();
     }
     public UnitBehaviour[] GetUnitsInScene(){

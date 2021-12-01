@@ -23,6 +23,12 @@ public class UnitBehaviour : MonoBehaviour
     public static float ATTACK_RADIUS = 0.5f;
     public static float STOPPED_RADIUS = 0.25f;
 
+    public string GetGUIName { get => getGUIName();}
+    protected virtual string getGUIName()
+    {
+        return "";
+    }
+
     private UnitBehaviour(){}
     public UnitBehaviour(Player player)
     {
@@ -94,16 +100,16 @@ public class UnitBehaviour : MonoBehaviour
         // navMeshAgent.Move(moveCommand.getCoordinates());
         Vector3Int v = Vector3Int.FloorToInt(
             new Vector3(
-                x: moveCommand.getCoordinates().x + 0.5f, 
+                x: moveCommand.getCoordinates().x, 
                 y: moveCommand.getCoordinates().y, 
-                z: moveCommand.getCoordinates().z + 0.5f)
+                z: moveCommand.getCoordinates().z)
                 );
 
         // navMeshObstacle.enabled = false;
         // NavMesh.
         // GameObject.FindObjectOfType<NavMeshSurface>()
         // navMeshAgent.enabled = true;
-        navMeshAgent.SetDestination(v);
+        navMeshAgent.SetDestination(moveCommand.getCoordinates());
         navMeshAgent.isStopped = false;
         navMeshAgent.avoidancePriority = MOVIMENT_PRIORITY;
     }
@@ -120,13 +126,11 @@ public class UnitBehaviour : MonoBehaviour
             // navMeshAgent.enabled = false;
             // navMeshObstacle.enabled = true;
             RefreshStandCommand();
-            Debug.Log("Unit stopped");
         }
     }
 
     protected virtual void UpdateAttackCommand()
     {
-        Debug.Log("Raiz executa ataque");
         if (navMeshAgent.remainingDistance < 0.1)
         {
             stopLastCommand();
@@ -171,4 +175,6 @@ public class UnitBehaviour : MonoBehaviour
     {
 
     }
+
+    // public string GetGuiName { get guiName;}
 }

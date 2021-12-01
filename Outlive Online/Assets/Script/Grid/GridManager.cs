@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -16,7 +15,8 @@ public class GridManager : MonoBehaviour
     public TileBase RenderTileBlock;
     public TileBase RenderTileScenaBlock;
     public BoundsInt Area;
-    public List<GridBlock> Grids = new List<GridBlock>();
+    public List<GridBlock> Grids;
+    private List<Vector3Int> gridVectors;
 
     // public System.Collections.SortedList<string, GameObject> d;
 
@@ -24,6 +24,7 @@ public class GridManager : MonoBehaviour
 
     private void Awake() 
     {
+        gridVectors = new List<Vector3Int>();
         
     }
 
@@ -49,13 +50,22 @@ public class GridManager : MonoBehaviour
 
     #region Manager Methods
         
-        public void CalculeGrid(GridBlock grid)
+        public Vector3Int[] CalculeGrid(GridBlock grid)
         {
+            Vector3Int[] vects = new Vector3Int[grid.blocks.Length];
+            int i = 0;
             foreach (Vector3Int v in grid.getBlocks())
             {
                 Vector3Int newV = new Vector3Int(v.x, v.z, 1);
                 GridReference.SetTile(newV, ReferenceTileBlock);
+                vects[i] = v;
+                i++;
             }
+            return vects;
+        }
+        public IEnumerable<Vector2Int> Get2DMask()
+        {
+            return new Outlive.Collections.GridMask(Grids);
         }
 
         public void Calcule()
@@ -64,8 +74,13 @@ public class GridManager : MonoBehaviour
 
             foreach (GridBlock g in Grids)
             {
-                CalculeGrid(g);
+                gridVectors.AddRange(CalculeGrid(g));
             }
+        }
+
+        public IReadOnlyCollection<Vector3Int> GetGridPoints()
+        {
+            return gridVectors.AsReadOnly();
         }
 
         public void PaintRenderGrid()

@@ -122,6 +122,299 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Shortcut",
+            "id": "5102c3a5-b584-482b-b119-f2c665c9bb5f",
+            "actions": [
+                {
+                    "name": "ActionClick",
+                    "type": "Button",
+                    "id": "21303b18-83fb-4ff7-b1c7-3460988db355",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Tap"
+                },
+                {
+                    "name": "CancelClick",
+                    "type": "Button",
+                    "id": "1bca4965-284f-4cd2-b85d-a35d6addd781",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "MousePosition",
+                    "type": "PassThrough",
+                    "id": "6f7b7815-3ab4-4fce-9606-7ead598b69dc",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyQ",
+                    "type": "Button",
+                    "id": "4161f413-1b81-4579-b4d0-f16a199b6924",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyW",
+                    "type": "Button",
+                    "id": "6dc20490-0eda-4583-9f7f-7296dd0b88d5",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyE",
+                    "type": "Button",
+                    "id": "92720ff9-bdd9-4022-b056-34e46406e8ea",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyR",
+                    "type": "Button",
+                    "id": "31ad1e05-a99d-4c05-a47e-3768158686c5",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyA",
+                    "type": "Button",
+                    "id": "2ce0c0c9-8b7b-4336-9935-eb412825ff19",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyS",
+                    "type": "Button",
+                    "id": "fd60c39e-2923-4724-b03d-81510ce5f8bf",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyD",
+                    "type": "Button",
+                    "id": "eee58596-9743-4c88-92ed-1c03c2758101",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyF",
+                    "type": "Button",
+                    "id": "f43080c1-afaa-4406-af0c-97d92d615f0c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyZ",
+                    "type": "Button",
+                    "id": "be53bb58-66f7-4359-8850-8a60f6bad904",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyX",
+                    "type": "Button",
+                    "id": "8ebf990c-6a44-4844-bd76-90157e1556a6",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyC",
+                    "type": "Button",
+                    "id": "6133500f-2c78-487d-a392-143d2ba046be",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "KeyV",
+                    "type": "Button",
+                    "id": "47c5e9f1-b269-4b58-9a03-7c049657f71f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "fd42886c-10d1-41b1-9a31-47fdb87fa811",
+                    "path": "<Keyboard>/#(A)",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyA",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4e9cafab-4795-4265-912f-18cfb76a492c",
+                    "path": "<Keyboard>/#(S)",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyS",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "427b8fc6-a7b9-4dcf-b92d-aa2cf9a9e1de",
+                    "path": "<Keyboard>/#(Q)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyQ",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0906eca8-93e4-488b-bfdb-4baea060f6ed",
+                    "path": "<Keyboard>/#(W)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyW",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "27aa63ce-2109-4a31-b1d7-4f5be1e2eb12",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActionClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "76337a6b-4b90-4aa2-b1b5-dd214e9d5372",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CancelClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "26fab7a3-30f6-4c98-9902-8de4357c7339",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MousePosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8affa3ac-4ea4-4e0a-8228-f0ef4efdf786",
+                    "path": "<Keyboard>/#(F)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyF",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8105e5ce-0bcd-4397-b442-a389629bb014",
+                    "path": "<Keyboard>/#(D)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyD",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ca4f040b-d2b9-468d-a9e9-998891072981",
+                    "path": "<Keyboard>/#(R)",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyR",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bf761d34-d72a-4c4e-8735-a8a319124e7b",
+                    "path": "<Keyboard>/#(E)",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyE",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "561dd0b7-5f97-40f9-93f4-c05cab93d665",
+                    "path": "<Keyboard>/#(Z)",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyZ",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "38938a0f-5bcd-494e-8583-cb1503b05752",
+                    "path": "<Keyboard>/#(X)",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyX",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "56e3fae2-2db1-4ef9-9718-84fe3766df85",
+                    "path": "<Keyboard>/#(C)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyC",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e609f949-e330-47b4-bfee-dd389340bf17",
+                    "path": "<Keyboard>/#(V)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeyV",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

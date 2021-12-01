@@ -13,13 +13,12 @@ public class GenericFireUnit : UnitBehaviour
     protected override void ExecuteAttackCommand(AttackCommand attackCommand){
         navMeshAgent.SetDestination(attackCommand.getCoordinates());
         navMeshAgent.isStopped = false;
-        navMeshAgent.avoidancePriority = 49;
+        navMeshAgent.avoidancePriority = ATTACK_PRIORITY;
 
     }
 
     protected override void UpdateAttackCommand(){
         AttackCommand attackCommand = (AttackCommand) standCommand;
-        Debug.Log("Attack command is setted: " + attackCommand.alvo);
         foreach (UnitBehaviour u in player.GetUnitsInScene())
         {
             // navMeshAgent = null;
@@ -27,6 +26,7 @@ public class GenericFireUnit : UnitBehaviour
             {
                 navMeshAgent.avoidancePriority = ATTACK_PRIORITY;
                 navMeshAgent.isStopped = true;
+                break;
             }
             else
             {

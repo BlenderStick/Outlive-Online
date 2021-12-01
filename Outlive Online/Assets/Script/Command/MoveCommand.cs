@@ -33,29 +33,29 @@ public class MoveCommand : PlayerCommand
     ///<param name="target"> Ponto inicial para calcular o círculo </param>
     ///<param name="mask"> Pontos que não podem ser preenchidos</param>
     ///<param name="lenghtMask"> Comprimento da matriz <paramref name="mask"/></param>
-    public static Vector3[] GenerateCircle(Vector3 target, Vector3[] mask, int lenghtMask, int numberOfPoints)
+    public static Vector3Int[] GenerateCircle(Vector3 target, Vector3Int[] mask, int lenghtMask, int numberOfPoints)
     {
 
         if(numberOfPoints == 0 || numberOfPoints == 1)
-            return new Vector3[]{target};
+            return new Vector3Int[]{Vector3Int.RoundToInt(target)};
         int maskLength = Mathf.Min(mask.Length, lenghtMask);
 
-        Vector3 lastVisinho = target;
+        Vector3Int lastVisinho = Vector3Int.RoundToInt(target);
 
-        Vector3[] finalPosition = new Vector3[numberOfPoints];
-        Vector3[] pointsAndMask = new Vector3[numberOfPoints + maskLength];
+        Vector3Int[] finalPosition = new Vector3Int[numberOfPoints];
+        Vector3Int[] pointsAndMask = new Vector3Int[numberOfPoints + maskLength];
         System.Array.Copy(mask, pointsAndMask, maskLength);
 
-        finalPosition[0] = target;
+        finalPosition[0] = lastVisinho;
 
         //Calcula as posições em círculo
         for(int i =  0; i < numberOfPoints; i++)
         {
 
-            Vector3[] visinhos = getVisinhos(lastVisinho);
+            Vector3Int[] visinhos = getVisinhos(lastVisinho);
             
 
-            Vector3 visinhoMaisProximo = minimumDistance(visinhos, pointsAndMask, i + maskLength, target);
+            Vector3Int visinhoMaisProximo = Vector3Int.RoundToInt(minimumDistance(visinhos, pointsAndMask, i + maskLength, target));
 
             finalPosition[i] = visinhoMaisProximo;
             pointsAndMask[i + maskLength] = visinhoMaisProximo;
@@ -68,12 +68,12 @@ public class MoveCommand : PlayerCommand
 
         return finalPosition;
     }
-    public static Vector3[] points(Vector3[] startPoints, Vector3[] mask, int maskLenght, Vector3 target)
+    public static Vector3Int[] points(Vector3[] startPoints, Vector3Int[] mask, int maskLenght, Vector3 target)
     {
         int length = startPoints.Length; 
         Vector3 midPoint = getMidPoint(startPoints);
 
-        Vector3[] finalPosition;
+        Vector3Int[] finalPosition;
 
         //Calcula as posições em círculo
         if(mask != null)
@@ -82,26 +82,26 @@ public class MoveCommand : PlayerCommand
         }
         else
         {
-            finalPosition = GenerateCircle(target, new Vector3[0], 0, startPoints.Length);
+            finalPosition = GenerateCircle(target, new Vector3Int[0], 0, startPoints.Length);
         }
 
 
         // Vector3 offset = target - midPoint;
-        Vector3[] reorganizedVectors = new Vector3[length];
+        Vector3Int[] reorganizedVectors = new Vector3Int[length];
 
-        Vector3[] priorityIndex = new Vector3[length];
+        Vector3Int[] priorityIndex = new Vector3Int[length];
         //Reorganiza as posições de destino
 
         for (int i = 0; i < length; i++)
         {
-            priorityIndex[i] = minimumDistance(finalPosition, priorityIndex, i, target);
+            priorityIndex[i] = Vector3Int.RoundToInt(minimumDistance(finalPosition, priorityIndex, i, target));
             // reorganizedVectors[i] = minimumDistance(finalPosition, reorganizedVectors, i, )
             // Vector3 vec = finalPosition[i] + 
         }
 
         for (int i = 0; i < length; i++)
         {
-            reorganizedVectors[i] = minimumDistance(finalPosition, reorganizedVectors, i, priorityIndex[length - 1 - i]);
+            reorganizedVectors[i] = Vector3Int.RoundToInt(minimumDistance(finalPosition, reorganizedVectors, i, priorityIndex[length - 1 - i]));
             // targetsOccuped
         }
 
@@ -122,7 +122,7 @@ public class MoveCommand : PlayerCommand
         return new Vector3(x, y);
     }
 
-    private static bool containVector(IList<Vector3> vectors, int vectorsCount, Vector3 compare)
+    private static bool containVector(IList<Vector3Int> vectors, int vectorsCount, Vector3 compare)
     {
         for (int i = 0; i < vectorsCount; i++)
         {
@@ -169,7 +169,7 @@ public class MoveCommand : PlayerCommand
     ///<returns>
     ///Vector3 mais próximo de <paramref name="target"/> que não está contido em <paramref name="maskVectors"/>
     ///</returns>
-    private static Vector3 minimumDistance(Vector3[] vectors, Vector3[] maskVectors, int sizeOfExcludeVectors, Vector3 target)
+    private static Vector3 minimumDistance(Vector3Int[] vectors, Vector3Int[] maskVectors, int sizeOfExcludeVectors, Vector3 target)
     {
         if(vectors.Length == 0)
             return target;
@@ -201,9 +201,9 @@ public class MoveCommand : PlayerCommand
         return min;
     }
 
-    private static Vector3[] getVisinhos(Vector3 target)
+    private static Vector3Int[] getVisinhos(Vector3 target)
     {
-        Vector3[] visinhos = new Vector3[8];
+        Vector3Int[] visinhos = new Vector3Int[8];
         int count = 0;
 
         for (int x = -1; x <= 1; x++)
@@ -212,7 +212,7 @@ public class MoveCommand : PlayerCommand
             {
                 if(target.x != x && target.y != z)
                 {
-                    visinhos[count] = new Vector3(target.x + x, target.y, target.z + z);
+                    visinhos[count] = Vector3Int.RoundToInt(new Vector3(target.x + x, target.y, target.z + z));
                     count ++;
                 }
                 
@@ -221,7 +221,7 @@ public class MoveCommand : PlayerCommand
         return visinhos;
     }
     
-    public static Vector3[] points(IList<UnitBehaviour> units, Vector3[] mask, int maskLenght, Vector3 target)
+    public static Vector3Int[] points(IList<UnitBehaviour> units, Vector3Int[] mask, int maskLenght, Vector3 target)
     {
         Vector3[] vectors = new Vector3[units.Count];
         for (int i = 0; i < units.Count; i++)
