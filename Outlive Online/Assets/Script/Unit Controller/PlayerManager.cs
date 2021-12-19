@@ -25,6 +25,14 @@ public class PlayerManager : MonoBehaviour
         }
         return enemys;
     }
+
+    public void InstallUnitsInScene(GameObject obj)
+    {
+        foreach (Player p in players)
+        {  
+            Player.InstallPlayer(p, obj);
+        }   
+    }
     // Start is called before the first frame update
     void Start()
     {

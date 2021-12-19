@@ -250,6 +250,50 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: fd60c39e-2923-4724-b03d-81510ce5f8bf
     m_ActionName: Shortcut/KeyS[/Keyboard/s]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 92720ff9-bdd9-4022-b056-34e46406e8ea
+    m_ActionName: Shortcut/KeyE[/Keyboard/e]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 31ad1e05-a99d-4c05-a47e-3768158686c5
+    m_ActionName: Shortcut/KeyR[/Keyboard/r]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: eee58596-9743-4c88-92ed-1c03c2758101
+    m_ActionName: Shortcut/KeyD[/Keyboard/d]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: f43080c1-afaa-4406-af0c-97d92d615f0c
+    m_ActionName: Shortcut/KeyF[/Keyboard/f]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: -8272057965628393762}
+        m_TargetAssemblyTypeName: ConstructorMainGUIInput, Assembly-CSharp
+        m_MethodName: RepairConstruction
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: be53bb58-66f7-4359-8850-8a60f6bad904
+    m_ActionName: Shortcut/KeyZ[/Keyboard/z]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 8ebf990c-6a44-4844-bd76-90157e1556a6
+    m_ActionName: Shortcut/KeyX[/Keyboard/x]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 6133500f-2c78-487d-a392-143d2ba046be
+    m_ActionName: Shortcut/KeyC[/Keyboard/c]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 47c5e9f1-b269-4b58-9a03-7c049657f71f
+    m_ActionName: Shortcut/KeyV[/Keyboard/v]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Shortcut

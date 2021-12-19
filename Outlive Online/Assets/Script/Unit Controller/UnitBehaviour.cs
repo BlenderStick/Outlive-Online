@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.AI;
+using Outlive.Unit.Command;
+using Outlive.Unit.Generic;
 
-public class UnitBehaviour : MonoBehaviour
+public class UnitBehaviour : MonoBehaviour, ICommandableUnit
 {
 
-    public Player player;
+    [SerializeField] private Player playerController;
     public Tilemap map;
 
-    private List<PlayerCommand> commands;
-    protected PlayerCommand standCommand;
+    private List<ICommand> commands;
+    protected ICommand standCommand;
     protected NavMeshAgent navMeshAgent;
     protected NavMeshObstacle navMeshObstacle;
 
@@ -24,6 +26,19 @@ public class UnitBehaviour : MonoBehaviour
     public static float STOPPED_RADIUS = 0.25f;
 
     public string GetGUIName { get => getGUIName();}
+
+    public Player player 
+    {
+        get
+        {
+            return playerController;
+        }
+        set
+        {
+            playerController = value;
+        }
+    }
+
     protected virtual string getGUIName()
     {
         return "";
@@ -32,33 +47,28 @@ public class UnitBehaviour : MonoBehaviour
     private UnitBehaviour(){}
     public UnitBehaviour(Player player)
     {
-        this.player = player;
+        this.playerController = player;
     }
 
     // Start is called before the first frame update
     void Start()
     {
         gameObject.GetComponent<Renderer>().material.SetColor("_Color", player.color);
-        commands = new List<PlayerCommand>();
+        commands = new List<ICommand>();
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshObstacle = GetComponent<NavMeshObstacle>();
+        
+        FindObjectOfType<PlayerManager>().InstallUnitsInScene(gameObject);
         // mouseInput.Mouse.MouseClick.performed += _ => MouseClick();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (standCommand is MoveCommand)
-        {
-            UpdateMoveCommand();
-        }
-        if (standCommand is AttackCommand)
-        {
-            UpdateAttackCommand();
-        }
+        UpdateCommand();
     }
 
-    public virtual void putCommand(PlayerCommand command, bool enfilerate)
+    public virtual void PutCommand(ICommand command, bool enfilerate)
     {
         if(command != null)
         {
@@ -81,7 +91,7 @@ public class UnitBehaviour : MonoBehaviour
 
     void putInteract()
     {
-        putCommand(new MoveCommand(0, 0, 0), false);
+        PutCommand(new MoveCommand(0, 0, 0), false);
     }
 
     protected virtual void ExecuteStandCommand()
@@ -173,7 +183,24 @@ public class UnitBehaviour : MonoBehaviour
 
     void RefreshStandCommand()
     {
+        
+    }
 
+    public void PutInteract(GameObject target, bool enfilerate)
+    {
+
+    }
+
+    public void UpdateCommand()
+    {
+        if (standCommand is MoveCommand)
+        {
+            UpdateMoveCommand();
+        }
+        if (standCommand is AttackCommand)
+        {
+            UpdateAttackCommand();
+        }
     }
 
     // public string GetGuiName { get guiName;}

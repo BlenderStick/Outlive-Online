@@ -3,6 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Outlive.Unit.Command;
+using Outlive.Unit.Generic;
+using Outlive.Human.Generic;
+using Outlive.Human.Construcoes;
 
 public class ConstructorMainGUIInput : MonoBehaviour
 {
@@ -10,6 +14,7 @@ public class ConstructorMainGUIInput : MonoBehaviour
     private Player player;
     private Vector2 mousePosition;
     private bool isAttack;
+    private bool isRepair;
 
     public Player Player { get => player; set => player = value; }
 
@@ -27,22 +32,43 @@ public class ConstructorMainGUIInput : MonoBehaviour
 
     public void ActionClick()
     {
-        if(isAttack)
+        if (isAttack)
         {
-            ConstrutorBehaviour[] units = player.GetSelectedUnits<ConstrutorBehaviour>();
+            ICommandableUnit[] units = player.GetSelectedUnits<ICommandableUnit>();
             Vector3 coord;
             if (player.RayCastInMap(mousePosition, out coord))
             {
                 AttackCommand command = new AttackCommand(coord);
-                foreach (ConstrutorBehaviour b in units)
+                foreach (ICommandableUnit b in units)
                 {
-                    b.putCommand(command, false);
+                    b.PutCommand(command, false);
                 }
             }
 
 
 
             isAttack = false;
+            player.defaultInput.enabled = true;
+        }
+        if (isRepair)
+        { 
+            Collider collider;
+            int layerMask = 1 << LayerMask.NameToLayer("Default");
+            if (player.RayCast(mousePosition, out collider, layerMask))
+            {
+                IUnitConstructable uConst;
+
+                if (collider.TryGetComponent<IUnitConstructable>(out uConst))
+                {
+                    ICommandableUnit[] units = player.GetSelectedUnits<ICommandableUnit>();
+                    foreach (ICommandableUnit b in units)
+                    {
+                        b.PutCommand(new BuildCommand(uConst.constructable), false);
+                    }
+                }
+            }
+
+            isRepair = false;
             player.defaultInput.enabled = true;
         }
     }
@@ -52,6 +78,11 @@ public class ConstructorMainGUIInput : MonoBehaviour
         {
             player.defaultInput.enabled = true;
             isAttack = false;
+        }
+        if (isRepair)
+        {
+            player.defaultInput.enabled = true;
+            isRepair = false;
         }
     }
 
@@ -64,10 +95,10 @@ public class ConstructorMainGUIInput : MonoBehaviour
 
     public void Stand()
     {
-        ConstrutorBehaviour[] units = player.GetSelectedUnits<ConstrutorBehaviour>();
-        foreach (ConstrutorBehaviour b in units)
+        ICommandableUnit[] units = player.GetSelectedUnits<ICommandableUnit>();
+        foreach (ICommandableUnit b in units)
         {
-            b.putCommand(null, false);
+            b.PutCommand(null, false);
         }
     }
 
@@ -81,6 +112,12 @@ public class ConstructorMainGUIInput : MonoBehaviour
         // new SetGUI(player, "constructorResources");
         player.setUnitGUI("constructorResources");
     }
+
+    public void RepairConstruction()
+    {
+        player.defaultInput.enabled = false;
+        isRepair = true;
+    }
     
     public void MousePosition(InputAction.CallbackContext ctx)
     {
@@ -93,7 +130,6 @@ public class ConstructorMainGUIInput : MonoBehaviour
     }
     private void OnDestroy() 
     {
-        Debug.Log("Destroy is called");
         // if (player != null)
         //     player.defaultInput.enabled = true;
     }

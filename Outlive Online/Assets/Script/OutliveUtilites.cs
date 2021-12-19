@@ -171,6 +171,67 @@ namespace Outlive
         ///Calcula um conjunto de pontos ao redor de center, esses pontos não respeitam a grade, por isso tendem a formar um circulo próximo ao perfeito.
         ///</summary>
         ///<param name="pointRadius"> angulo em radiano </param>
+        public static Vector2[] CalculatePointsAround(Vector2 center, float pointRadius, int numberOfPoints, IEnumerable<Vector2Int> mask, float preferredAngle)
+        {
+            
+
+            Vector2[] vects = new Vector2[numberOfPoints];
+
+            int camada = 0;
+            int index = 0;
+            
+            //Verifica se o centro está insidindo em algum ponto da mascara
+            if(!IntersectaAMascara(center, pointRadius, mask))
+            {
+                vects[index] = center;
+                camada++;
+                index++;
+            }
+
+            float camadaRaio = camada * 2 * pointRadius;
+
+            while (index < numberOfPoints)
+            {
+                float meiaCircunferencia = camadaRaio * Mathf.PI;
+
+                int maxPoints = (int) (meiaCircunferencia / pointRadius);
+                if(maxPoints > numberOfPoints - index)
+                    maxPoints = numberOfPoints - index;
+
+                float angleStep = Mathf.PI * 2 / (float) maxPoints;
+
+                float standAngle = preferredAngle;
+                // Debug.Log(camada);
+                for (int i = 0; i < maxPoints; i++)
+                {
+                    float x = Mathf.Cos(standAngle) * camadaRaio + center.x;
+                    float y = Mathf.Sin(standAngle) * camadaRaio + center.y;
+                    Vector2 v = new Vector2(x, y);
+                    standAngle += angleStep;
+
+                    if(index < numberOfPoints)
+                    {
+                        if(!IntersectaAMascara(v, pointRadius, mask))
+                        {
+                            vects[index] = v;
+                            index++;
+                        }
+                    }
+                    else
+                        break;
+                }
+                camada++;
+                camadaRaio = camada * 2 * pointRadius;
+            }
+
+
+            return vects;
+        }
+
+        ///<summary>
+        ///Calcula um conjunto de pontos ao redor de center, esses pontos não respeitam a grade, por isso tendem a formar um circulo próximo ao perfeito.
+        ///</summary>
+        ///<param name="pointRadius"> angulo em radiano </param>
         public static Vector2[] CalculatePointsAround(Vector2 center, float pointRadius, int numberOfPoints, float preferredAngle)
         {
             return CalculatePointsAround(center, pointRadius, numberOfPoints, null, 0, preferredAngle);
@@ -187,6 +248,25 @@ namespace Outlive
                 foreach (Vector2Int v in mask)
                 {
                     if (vect.Equals(v))
+                        return true;
+
+                    if(i >= maskLenght)
+                        break;
+
+                    i++;
+                }
+            }
+            return false;
+        }
+
+        public static bool ContemNaMascara<T> (T obj, IEnumerable<T> mask, int maskLenght)
+        {
+            if (mask != null && maskLenght > 0)
+            {
+                int i = 0;
+                foreach (T v in mask)
+                {
+                    if (obj.Equals(v))
                         return true;
 
                     if(i >= maskLenght)
@@ -235,6 +315,41 @@ namespace Outlive
                     }
                 }
                 count++;
+            }
+            return false;
+        }
+        public static bool IntersectaAMascara(Vector2 vect, float radius, IEnumerable<Vector2Int> mask)
+        {
+            if (mask == null)
+                return false;
+
+            foreach (Vector2Int v in mask)
+            {
+
+                Vector2 maskV = new Vector2((float) v.x, (float) v.y);
+                Vector2 magnitude = vect - maskV;
+                magnitude = new Vector2(Mathf.Abs(magnitude.x), Mathf.Abs(magnitude.y));
+                float angle = Mathf.Atan2(magnitude.y, magnitude.x);
+                if(angle < 0)
+                    angle = Mathf.PI + angle;
+
+                if (magnitude.x < 0.5f)
+                {
+                    if (magnitude.y < 0.5f + radius)
+                        return true;
+                }
+                else if (magnitude.y < 0.5f)
+                {
+                    if (magnitude.x < 0.5f + radius)
+                        return true;
+                }
+                else
+                {
+                    if (((new Vector2(0.5f, 0.5f)) - magnitude).sqrMagnitude < radius * radius)
+                    {
+                        return true;
+                    }
+                }
             }
             return false;
         }
@@ -302,6 +417,15 @@ namespace Outlive
             }
             return reference;
             
+        }
+
+        public static bool CheckIsNull(object obj)
+        {
+            return obj == null;
+        }
+        public static bool CheckIsNotNull(object obj)
+        {
+            return obj != null;
         }
     }
 }

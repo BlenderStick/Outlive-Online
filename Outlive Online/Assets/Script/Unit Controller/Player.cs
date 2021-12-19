@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System.Threading;
 using System.Linq;
 using System;
@@ -8,6 +9,9 @@ using UnityEngine.AI;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using Outlive;
+using Outlive.Human.Construcoes;
+using Outlive.Unit.Command;
+using Outlive.Unit.Generic;
 
 public class Player : MonoBehaviour
 {
@@ -15,16 +19,21 @@ public class Player : MonoBehaviour
     // public Input input;
     public PlayerManager manager;
     public PlayerInput defaultInput;
+    private Outlive.Unit.Generic.ICommandableUnit Commandable;
 
     public Color color;
 
     private Vector3 mouseDragPosition;
     private bool drag;
     private Camera mainCamera;
-    private UnitBehaviour[] unitsInScene;
+    private List<GameObject> unitsInScene;
+    private object unitsInSceleLock;
     private float dragTimeStarted;
     private float lastMouseMoved;
-    private List<UnitBehaviour> units;
+    private List<ICommandableUnit> units;
+    private List<ISelectableUnit> unitsSelectables;
+    private List<IGUIUnit> unitsGUI;
+    private ISelectableUnit currentSelectable; 
     public Image selectionRectangle;
     public GameObject basicUnit;
     private Vector2 mousePosition;
@@ -50,6 +59,13 @@ public class Player : MonoBehaviour
     ///</summary>
     public bool EnableActionWithClick { get => isEnableActionWithClick; set => isEnableActionWithClick = value; }
 
+    private void Awake() {
+        unitsInScene = new List<GameObject>();
+        unitsInSceleLock = new object();
+        units = new List<ICommandableUnit>();
+        unitsSelectables = new List<ISelectableUnit>();
+        unitsGUI = new List<IGUIUnit>();
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -59,7 +75,7 @@ public class Player : MonoBehaviour
         {
             // Vector3Int[] vectors = MoveCommand.GenerateCircle(new Vector3(-2, 0, 5), new Vector3Int[0], 0, 10);
             // ICollection<Vector2Int> vects = OutliveUtilites.CalculatePointsAroundInGrid(new Vector2Int(-2, 5), 10);
-            ICollection<Vector2> vects2 = OutliveUtilites.CalculatePointsAround(new Vector2Int(-2, 5), 0.5f, 20, null, 0, 0.5f);
+            // ICollection<Vector2> vects2 = OutliveUtilites.CalculatePointsAround(new Vector2Int(-2, 5), 0.5f, 20, null, 0, 0.5f);
             // foreach (Vector3Int v in vectors)
             // {
             //     GameObject obj = Instantiate<GameObject>(basicUnit, v, Quaternion.Euler(0, 0, 0));
@@ -75,16 +91,14 @@ public class Player : MonoBehaviour
             //     b.player = this;
             // }
 
-            foreach (Vector2 v in vects2)
-            {
-                Vector3 pos = new Vector3(v.x, 0, v.y);
-                GameObject obj = Instantiate<GameObject>(basicUnit, pos, Quaternion.Euler(0, 0, 0));
-                UnitBehaviour b = obj.GetComponent<UnitBehaviour>();
-                b.player = this;
-            }
+            // foreach (Vector2 v in vects2)
+            // {
+            //     Vector3 pos = new Vector3(v.x, 0, v.y);
+            //     GameObject obj = Instantiate<GameObject>(basicUnit, pos, Quaternion.Euler(0, 0, 0));
+            //     UnitBehaviour b = obj.GetComponent<UnitBehaviour>();
+            //     b.player = this;
+            // }
         }
-        unitsInScene = GameObject.FindObjectsOfType<UnitBehaviour>();
-        units = new List<UnitBehaviour>();
         mainCamera = Camera.main;
     }
 
@@ -104,28 +118,32 @@ public class Player : MonoBehaviour
     {
         if (EnableSelectWithClick)
         {
-            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
+            Collider collider;
+
+            if(RayCast(mousePosition, out collider, LayerMask.GetMask("Default")))
             {
-                if (hit.collider != null)
+                ICommandableUnit commandable;
+                if (collider.TryGetComponent<ICommandableUnit>(out commandable) && commandable.player == this)
                 {
-                    if (hit.collider.GetComponent<UnitBehaviour>() != null)
-                    {
-                        units.Clear();
-                        UnitBehaviour unitBehaviour = hit.collider.GetComponent<UnitBehaviour>();
-                        if (unitBehaviour.player == this)
-                            units.Add(unitBehaviour);
-                    }
-                    else 
-                    {
-                        // units.Clear();
-                    }
+                    units.Clear();
+                    units.Add(commandable);
                     
+                    ISelectableUnit selectable;
+                    if (collider.TryGetComponent<ISelectableUnit>(out selectable))
+                    {
+                        DeselectAll();
+
+                        unitsSelectables.Add(selectable);
+                        selectable.UnitSelect();
+                    }
                 }
-                else 
+
+                IGUIUnit guiUnit;
+
+                if (collider.TryGetComponent<IGUIUnit>(out guiUnit))
                 {
-                    // units.Clear();
+                    unitsGUI.Clear();
+                    unitsGUI.Add(guiUnit);
                 }
             }
             updateUnitGUI();
@@ -133,12 +151,29 @@ public class Player : MonoBehaviour
         
     }
 
+    private void DeselectAll()
+    {
+        foreach (ISelectableUnit unit in unitsSelectables)
+        {
+            unit.UnidDeselect();
+        }
+        unitsSelectables.Clear();
+    }
+    private void SelectAll()
+    {
+        foreach (ISelectableUnit unit in unitsSelectables)
+        {
+            unit.UnitSelect();
+        }
+    }
+
+    ///<summary>
+    ///Lança um raio a partir de um ponto na vista do jogador e retorna true se acertar o mapa
+    ///<para> 
     public bool RayCastInMap(Vector2 pointInScreen, out Vector3 surfacePoint)
     {
-        Ray ray = mainCamera.ScreenPointToRay(pointInScreen);
         RaycastHit hit;
-        Physics.Raycast(ray, out hit);
-        if (Physics.Raycast(ray, out hit))
+        if(RayCast(pointInScreen, out hit, LayerMask.NameToLayer("Default")))
         {
             if (hit.collider.gameObject.isStatic)
             {
@@ -146,8 +181,63 @@ public class Player : MonoBehaviour
                 return true;
             }
         }
+        
         surfacePoint = mainCamera.ScreenToWorldPoint(pointInScreen);
         return false;
+    }
+    ///<summary>
+    ///Lança um raio a partir de um ponto na vista do jogador e retorna true se acertar algum collider
+    ///</summary>
+    ///<param name="pointInScreen"> Posição na tela por onde o raio será lançado </param>
+    ///<param name="collider"> Collider atingido </param>
+    public bool RayCast(Vector2 pointInScreen, out Collider collider)
+    {
+        RaycastHit hit;
+        if (RayCast(pointInScreen, out hit))
+        {
+            collider = hit.collider;
+            return true;
+        }
+        collider = null;
+        return false;
+    }
+    ///<summary>
+    ///Lança um raio a partir de um ponto na vista do jogador e retorna true se acertar algum collider
+    ///</summary>
+    ///<param name="pointInScreen"> Posição na tela por onde o raio será lançado </param>
+    ///<param name="collider"> Collider atingido </param>
+    ///<param name="mask"> Mascara dos objetos que podem ser atingidos <param>
+    public bool RayCast(Vector2 pointInScreen, out Collider collider, int layer)
+    {
+        RaycastHit hit;
+        if (RayCast(pointInScreen, out hit, layer))
+        {
+            collider = hit.collider;
+            return true;
+        }
+        collider = null;
+        return false;
+    }
+    ///<summary>
+    ///Lança um raio a partir de um ponto na vista do jogador e retorna true se acertar algum objeto
+    ///</summary>
+    ///<param name="pointInScreen"> Posição na tela por onde o raio será lançado </param>
+    ///<param name="raycastHit"> Informações do raio </param>
+    public bool RayCast(Vector2 pointInScreen, out RaycastHit raycastHit)
+    {
+        Ray ray = mainCamera.ScreenPointToRay(pointInScreen);
+        return Physics.Raycast(ray, out raycastHit);
+    }
+    ///<summary>
+    ///Lança um raio a partir de um ponto na vista do jogador e retorna true se acertar algum objeto
+    ///</summary>
+    ///<param name="pointInScreen"> Posição na tela por onde o raio será lançado </param>
+    ///<param name="raycastHit"> Informações do raio </param>
+    public bool RayCast(Vector2 pointInScreen, out RaycastHit raycastHit, int layer)
+    {
+        Ray ray = mainCamera.ScreenPointToRay(pointInScreen);
+        // Physics.Raycast(ray, 100f, layer, )
+        return Physics.Raycast(ray, out raycastHit, Mathf.Infinity, layer);
     }
 
     public void ActionClick()
@@ -173,9 +263,9 @@ public class Player : MonoBehaviour
                         // Vector3Int[] targetVectors = MoveCommand.points(units, grids.ToArray(), grids.Count, target);
                         Vector3[] targetVectors = OutliveUtilites.From2DTo3DCoordinates(OutliveUtilites.CalculatePointsAround(new Vector2(hit.point.x, hit.point.z), 0.5f, units.Count, gridManager.Get2DMask(), grids.Count, 0f));
                         int count = 0;
-                        foreach(UnitBehaviour unit in units)
+                        foreach(ICommandableUnit unit in units)
                         {
-                            unit.putCommand(new MoveCommand(targetVectors[count]), false);
+                            unit.PutCommand(new MoveCommand(targetVectors[count]), false);
                             count ++;
                         }
                     } 
@@ -208,15 +298,43 @@ public class Player : MonoBehaviour
         // if (Time.realtimeSinceStartup - dragTimeStarted > 0.5){
         if(lastMouseMoved > dragTimeStarted)
         {
-            units.Clear();
             Rect r = getSelectBox();
-            foreach (UnitBehaviour unit in unitsInScene)
+            lock (unitsInSceleLock)
             {
-                if(unit.player == this && r.Contains(mainCamera.WorldToScreenPoint(unit.transform.position)))
-                    units.Add(unit);
-                    // unit.GetComponent<PlayerInput>().actionEvents
+                units.Clear();
+                unitsGUI.Clear();
+                unitsSelectables.Clear();
+
+                foreach (GameObject unit in unitsInScene)
+                {
+                    ICommandableUnit commandable;
+                    if(unit.TryGetComponent<ICommandableUnit>(out commandable)) {
+                        if(commandable.player == this && r.Contains(mainCamera.WorldToScreenPoint(unit.transform.position))){
+                            units.Add(commandable);
+                            // unit.GetComponent<PlayerInput>().actionEvents
+
+                                    
+                            IGUIUnit guiUnit;
+
+                            if(unit.TryGetComponent<IGUIUnit>(out guiUnit))
+                            {
+                                unitsGUI.Add(guiUnit);
+                            }
+
+                            ISelectableUnit selectable;
+
+                            if (unit.TryGetComponent<ISelectableUnit>(out selectable))
+                            {
+                                unitsSelectables.Add(selectable);
+                                selectable.UnitSelect();
+                            }
+                        }
+                    }
+
+                }
+                updateUnitGUI();
             }
-            updateUnitGUI();
+            
         }
         
         drag = false;
@@ -224,9 +342,9 @@ public class Player : MonoBehaviour
 
     private void updateUnitGUI(){
         List<string> names = new List<string>();
-        foreach (UnitBehaviour u in units)
+        foreach (IGUIUnit u in unitsGUI)
         {
-            string n = u.GetGUIName;
+            string n = u.guiName;
             if(!names.Contains(n))
                 names.Add(n);
         }
@@ -271,6 +389,29 @@ public class Player : MonoBehaviour
     {
         lastMouseMoved = Time.realtimeSinceStartup;
         mousePosition = context.ReadValue<Vector2>();
+        SelectableUnitCheck();
+    }
+
+    private void SelectableUnitCheck()
+    {
+        Collider collider;
+        if (RayCast(mousePosition, out collider))
+        {
+            ISelectableUnit selectable;
+            if (collider.TryGetComponent<ISelectableUnit>(out selectable))
+            {
+                if (selectable != currentSelectable)
+                    if(currentSelectable != null)
+                        currentSelectable.UnitNotHover();
+                selectable.UnitHover();
+                currentSelectable = selectable;
+            }
+            else
+            {
+                if(currentSelectable != null)
+                    currentSelectable.UnitNotHover();
+            }
+        }
     }
     public Vector2 GetMousePosition()
     {
@@ -306,14 +447,14 @@ public class Player : MonoBehaviour
     private void StopSelectedUnits(){
         foreach (UnitBehaviour unit in units)
         {
-            unit.putCommand(null, false);
+            unit.PutCommand(null, false);
         }
     }
-    public T[] GetSelectedUnits<T>() where T : UnitBehaviour
+    public T[] GetSelectedUnits<T>() where T : ICommandableUnit
     {
         T[] tUnits = new T[units.Count];
         int index = 0;
-        foreach (UnitBehaviour i in units)
+        foreach (ICommandableUnit i in units)
         {
             if (i is T)
             {
@@ -327,10 +468,21 @@ public class Player : MonoBehaviour
         return newTUnits;
     }
 
-    public UnitBehaviour[] GetSelectedUnits(){
+    public ICommandableUnit[] GetSelectedUnits(){
         return units.ToArray();
     }
-    public UnitBehaviour[] GetUnitsInScene(){
-        return unitsInScene;
+    public GameObject[] GetUnitsInScene(){
+        lock (unitsInSceleLock)
+        {
+            return unitsInScene.ToArray();
+        }
+    }
+
+    public static void InstallPlayer(Player player, GameObject obj)
+    {
+        lock (player.unitsInSceleLock)
+        {
+            player.unitsInScene.Add(obj);
+        }
     }
 }
