@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Outlive.Manager.Generic;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
 using UnityEngine;
@@ -9,7 +10,7 @@ public class GenericFireUnit : UnitBehaviour
 
     public int fireRange;
     // public int 
-    public GenericFireUnit(Player player) : base(player)
+    public GenericFireUnit(IPlayer player) : base(player)
     {}
     
     protected override void ExecuteAttackCommand(AttackCommand attackCommand){
@@ -21,13 +22,13 @@ public class GenericFireUnit : UnitBehaviour
 
     protected override void UpdateAttackCommand(){
         AttackCommand attackCommand = (AttackCommand) standCommand;
-        foreach (GameObject u in player.GetUnitsInScene())
+        foreach (GameObject obj in player.units)
         {
+
             ICommandableUnit commandable;
 
-            if(u.TryGetComponent<ICommandableUnit>(out commandable))
-            // navMeshAgent = null;
-                if (commandable.player != player && Vector3.SqrMagnitude(transform.position - u.transform.position) <= Mathf.Pow(fireRange, 2))
+            if(obj.TryGetComponent<ICommandableUnit>(out commandable))
+                if (commandable.player != player && Vector3.SqrMagnitude(transform.position - obj.transform.position) <= Mathf.Pow(fireRange, 2))
                 {
                     navMeshAgent.avoidancePriority = ATTACK_PRIORITY;
                     navMeshAgent.isStopped = true;
@@ -40,6 +41,7 @@ public class GenericFireUnit : UnitBehaviour
                     base.UpdateAttackCommand();
                     // this.UpdateAttackCommand();
                 }
+            
         }
     }
 

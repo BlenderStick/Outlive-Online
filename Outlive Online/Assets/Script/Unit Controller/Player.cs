@@ -123,7 +123,7 @@ public class Player : MonoBehaviour
             if(RayCast(mousePosition, out collider, LayerMask.GetMask("Default")))
             {
                 ICommandableUnit commandable;
-                if (collider.TryGetComponent<ICommandableUnit>(out commandable) && commandable.player == this)
+                if (collider.TryGetComponent<ICommandableUnit>(out commandable) && commandable.player == (object) this)
                 {
                     units.Clear();
                     units.Add(commandable);
@@ -304,13 +304,13 @@ public class Player : MonoBehaviour
                 units.Clear();
                 unitsGUI.Clear();
                 unitsSelectables.Clear();
-
                 foreach (GameObject unit in unitsInScene)
                 {
                     ICommandableUnit commandable;
                     if(unit.TryGetComponent<ICommandableUnit>(out commandable)) {
-                        if(commandable.player == this && r.Contains(mainCamera.WorldToScreenPoint(unit.transform.position))){
+                        if(commandable.player == (object) this && r.Contains(mainCamera.WorldToScreenPoint(unit.transform.position))){
                             units.Add(commandable);
+                            
                             // unit.GetComponent<PlayerInput>().actionEvents
 
                                     

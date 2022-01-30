@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Outlive.Manager.Generic;
 
 public class ConstrutorBehaviour : GenericFireUnit
 {
@@ -11,7 +12,7 @@ public class ConstrutorBehaviour : GenericFireUnit
         return "constructorMain";
     }
 
-    public ConstrutorBehaviour(Player player) : base(player)
+    public ConstrutorBehaviour(IPlayer player) : base(player)
     {
         
     }

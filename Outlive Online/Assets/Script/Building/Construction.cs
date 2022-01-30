@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Outlive.Unit.Generic;
 using UnityEngine;
 
 public class Construction : MonoBehaviour

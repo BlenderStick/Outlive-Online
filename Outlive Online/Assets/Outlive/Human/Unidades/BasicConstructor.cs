@@ -7,7 +7,9 @@ using UnityEngine.AI;
 public class BasicConstructor : MonoBehaviour, IConstructorHandler
 {
 
+#pragma warning disable 0649
     [SerializeField] private NavMeshAgent navigation;
+#pragma warning restore 0649
     private IConstructableHandler construction;
     private Vector3 positionToConstructField;
     public void ConnectConstructable(IConstructableHandler constructable)
@@ -19,6 +21,8 @@ public class BasicConstructor : MonoBehaviour, IConstructorHandler
     {
         if (construction == constructable)
             construction = null;
+        navigation.isStopped = true;
+        positionToConstructField = Vector3.zero;
     }
 
     public float DistancePathTo(Vector3 coord)
@@ -60,11 +64,13 @@ public class BasicConstructor : MonoBehaviour, IConstructorHandler
     {
         if (constructable == construction)
         {
-            if (position != positionToConstructField)
+            if (navigation.destination != position)
             {
-                positionToConstructField = position;
                 navigation.destination = position;
+                positionToConstructField = position;
             }
+            if (navigation.isStopped)
+                navigation.isStopped = false;
         }
     }
 

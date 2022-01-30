@@ -92,6 +92,13 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "com.yasirkula.assetusagedetector": {
+      "version": "https://github.com/yasirkula/UnityAssetUsageDetector.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "4b146280ab1c450138a925c93071147d72b2cb79"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

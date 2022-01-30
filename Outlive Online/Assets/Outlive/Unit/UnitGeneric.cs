@@ -4,40 +4,45 @@ using Outlive.Unit.Interacts;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
 using UnityEngine;
+using Outlive.Manager.Generic;
 
 namespace Outlive.Unit
 {
+    [AddComponentMenu("Outlive/Unit/Unit"), RequireComponent(typeof(UnitStarter))]
     public class UnitGeneric : MonoBehaviour, ICommandableUnit, IGUIUnit, ISelectableUnit
     {
 
-        [SerializeField] private string guiNameField;
-        [SerializeField] private Player playerField;
-        [SerializeField] private BasicBehaviour[] behaviours;
-        [SerializeField] private IUnitInteract[] interacts;
+#pragma warning disable 0649
+        [SerializeField] private string _guiName;
+        [SerializeField] private IPlayer _player;
+        [SerializeField] private BasicBehaviour[] _behaviours;
+        [SerializeField] private IUnitInteract[] _interacts;
+#pragma warning restore 0649
 
-        private IList<ICommand> commands;
-        private Object commandsLock;
-        private ICommand currentCommand;
-        private IBehaviour currentBehaviour;
+        private IList<ICommand> _commands;
+        private Object _commandLock;
+        private ICommand _currentCommand;
+        private IBehaviour _currentBehaviour;
 
         // [SerializeField]
         public string guiName 
         {
             get
             {
-                return guiNameField;
+                return _guiName;
             }
         }
 
-        public Player player 
+        public IPlayer player 
         {
             get
             {
-                return playerField;
+                return _player;
             }
             set
             {
-                playerField = value;
+                if(_player == null)
+                    _player = value;
             }
         }
 
@@ -49,36 +54,44 @@ namespace Outlive.Unit
 
         public void PutCommand(ICommand command, bool enfilerate)
         {
-            lock (commandsLock)
+            lock (_commandLock)
             {
-                if(currentCommand == null)
+                if(_currentCommand == null)
                 {
-                    currentCommand = command;
+                    _currentCommand = command;
                             
-                    if (!TryFindBehaviour(command, out currentBehaviour))
+                    if (command != null && !TryFindBehaviour(command, out _currentBehaviour))
                         Debug.Log("Não há um comportamento que executa o comando recebido " + command.GetType().Name);
+                    else if (command == null)
+                    {
+                        _currentBehaviour = null;
+                    }
                     else
-                        currentBehaviour.Setup(gameObject);
+                        _currentBehaviour.Setup(gameObject);
                 }
                 else
                 {
                     if(enfilerate)
                     {
-                        commands.Add(command);
+                        _commands.Add(command);
                     }
                     else
                     {
-                        if(currentBehaviour != null)
+                        if(_currentBehaviour != null)
                         {
-                            currentBehaviour.Cancel(gameObject, currentCommand);
-                            currentBehaviour.Reset();
+                            _currentBehaviour.Cancel(gameObject, _currentCommand);
+                            _currentBehaviour.Reset();
                         }
-                        currentCommand = command;
+                        _currentCommand = command;
                         
-                        if (!TryFindBehaviour(command, out currentBehaviour))
+                        if (command != null && !TryFindBehaviour(command, out _currentBehaviour))
                             Debug.Log("Não há um comportamento que executa o comando recebido " + command.GetType().Name);
+                        else if (command == null)
+                        {
+                            _currentBehaviour = null;
+                        }
                         else
-                            currentBehaviour.Setup(gameObject);
+                            _currentBehaviour.Setup(gameObject);
                     }
                 }
             }
@@ -87,7 +100,7 @@ namespace Outlive.Unit
 
         public void PutInteract(GameObject target, bool enfilerate)
         {
-            lock (commandsLock)
+            lock (_commandLock)
             {
                 // ICommand command;
 
@@ -96,26 +109,26 @@ namespace Outlive.Unit
                 //     if (i.Interact(gameObject, target, out comm))
                 // }
 
-                if(currentCommand == null)
+                if(_currentCommand == null)
                 {
-                    if (!TryFindInteract(target, out currentCommand, out currentBehaviour))
+                    if (!TryFindInteract(target, out _currentCommand, out _currentBehaviour))
                         Debug.Log("Não há uma interação adequada para que " + gameObject.name + " tenha um comportamento para " + target.name);
                 }
                 else
                 {
                     if(enfilerate)
                     {
-                        commands.Add(new InteractCommand(target));
+                        _commands.Add(new InteractCommand(target));
                     }
                     else
                     {
-                        if(currentBehaviour != null)
+                        if(_currentBehaviour != null)
                         {
-                            currentBehaviour.Cancel(gameObject, currentCommand);
-                            currentBehaviour.Reset();
+                            _currentBehaviour.Cancel(gameObject, _currentCommand);
+                            _currentBehaviour.Reset();
                         }
                         
-                        if (!TryFindInteract(target, out currentCommand, out currentBehaviour))
+                        if (!TryFindInteract(target, out _currentCommand, out _currentBehaviour))
                             Debug.Log("Não há uma interação adequada para que " + gameObject.name + " tenha um comportamento para " + target.name);
                     }
                 }
@@ -124,7 +137,7 @@ namespace Outlive.Unit
 
         private IBehaviour FindBehaviour(ICommand command)
         {
-            foreach (IBehaviour b in behaviours)
+            foreach (IBehaviour b in _behaviours)
             {
                 if (b.Condition(command))
                     return b;
@@ -133,7 +146,7 @@ namespace Outlive.Unit
         }
         private bool TryFindBehaviour(ICommand command, out IBehaviour behaviour)
         {
-            foreach (IBehaviour b in behaviours)
+            foreach (IBehaviour b in _behaviours)
             {
                 if (b.Condition(command))
                 {
@@ -149,7 +162,7 @@ namespace Outlive.Unit
         {
             IBehaviour b;
             ICommand c;
-            foreach (IUnitInteract i in interacts)
+            foreach (IUnitInteract i in _interacts)
             {
                 if (i.Interact(gameObject, target, out b) && i.Command(gameObject, target, out c))
                 {
@@ -164,51 +177,62 @@ namespace Outlive.Unit
         }
 
         #region ISelectableUnit
+#pragma warning disable 0649
             [SerializeField] private Light selection;
-            [SerializeField] private float selectedIntense;
-            [SerializeField] private float hoverIntense;
-            [SerializeField] private float deselectedIntense;
+            
+            [SerializeField] private Color _normal;
+            [SerializeField] private Color _selected;
+            [SerializeField] private Color _hover;
+#pragma warning restore 0649
 
             private bool selected;
             public void UnidDeselect()
             {
-                selection.intensity = deselectedIntense;
+                if (!enabled)
+                    return;
+                selection.color = player.color * _normal;
                 selected = false;
             }
 
             public void UnitSelect()
             {
-                selection.intensity = selectedIntense;
+                if (!enabled)
+                    return;
+                selection.color = player.color * _selected;
                 selected = true;
             }
             public void UnitHover()
             {
-                if (selected)
-                    selection.intensity = selectedIntense + hoverIntense;
-                else
-                    selection.intensity = hoverIntense;
+                if (!enabled)
+                    return;
+                if (!selected)
+                    selection.color = player.color * _hover;
+                // else
+                //     selection.color = player.color * _selected * _hover;
             }
 
             public void UnitNotHover()
             {
+                if (!enabled)
+                    return;
                 if(selected)
-                    selection.intensity = selectedIntense;
+                    selection.color = player.color * _selected;
                 else
-                    selection.intensity = deselectedIntense;
+                    selection.color = player.color * _normal;
             }
         #endregion
         
 
         public void UpdateCommand()
         {
-            if (currentBehaviour != null)
+            if (_currentBehaviour != null)
             {
-                lock (commandsLock)
+                lock (_commandLock)
                 {
-                    if (!currentBehaviour.UpdateBehaviour(gameObject, currentCommand))
+                    if (!_currentBehaviour.UpdateBehaviour(gameObject, _currentCommand))
                     {
-                        currentBehaviour.Reset();
-                        currentBehaviour = null;
+                        _currentBehaviour.Reset();
+                        _currentBehaviour = null;
                     }
                 }
             }
@@ -217,19 +241,24 @@ namespace Outlive.Unit
         // Start is called before the first frame update
         void Start()
         {
-            commandsLock = new Object();
+            _commandLock = new Object();
+            _commands = new List<ICommand>();
             if (player != null && selection != null)
             {
-                selection.color = player.color;
+                UnidDeselect();
             }
-            if (gameObject != null)
-            FindObjectOfType<PlayerManager>().InstallUnitsInScene(base.gameObject);
         }
 
         // Update is called once per frame
         void Update()
         {
             UpdateCommand();
+        }
+
+        public void UnitStarter(UnitStarter.StarterEvent evt)
+        {
+            player = evt.currentPlayer;
+            evt.gameManager.UnitNotify(gameObject, player);
         }
 
     }

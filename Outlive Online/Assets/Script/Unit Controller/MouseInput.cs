@@ -65,6 +65,14 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Multiselect"",
+                    ""type"": ""Button"",
+                    ""id"": ""a4b52898-88fe-461a-9008-94ee40cd4634"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -131,6 +139,17 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""KeyStop"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""933e1c09-a640-4f8e-8796-046a7f4266eb"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Multiselect"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -440,6 +459,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
         m_Mouse_CommandClick = m_Mouse.FindAction("CommandClick", throwIfNotFound: true);
         m_Mouse_KeyAttack = m_Mouse.FindAction("KeyAttack", throwIfNotFound: true);
         m_Mouse_KeyStop = m_Mouse.FindAction("KeyStop", throwIfNotFound: true);
+        m_Mouse_Multiselect = m_Mouse.FindAction("Multiselect", throwIfNotFound: true);
         // Shortcut
         m_Shortcut = asset.FindActionMap("Shortcut", throwIfNotFound: true);
         m_Shortcut_ActionClick = m_Shortcut.FindAction("ActionClick", throwIfNotFound: true);
@@ -512,6 +532,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
     private readonly InputAction m_Mouse_CommandClick;
     private readonly InputAction m_Mouse_KeyAttack;
     private readonly InputAction m_Mouse_KeyStop;
+    private readonly InputAction m_Mouse_Multiselect;
     public struct MouseActions
     {
         private @MouseInput m_Wrapper;
@@ -522,6 +543,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
         public InputAction @CommandClick => m_Wrapper.m_Mouse_CommandClick;
         public InputAction @KeyAttack => m_Wrapper.m_Mouse_KeyAttack;
         public InputAction @KeyStop => m_Wrapper.m_Mouse_KeyStop;
+        public InputAction @Multiselect => m_Wrapper.m_Mouse_Multiselect;
         public InputActionMap Get() { return m_Wrapper.m_Mouse; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -549,6 +571,9 @@ public class @MouseInput : IInputActionCollection, IDisposable
                 @KeyStop.started -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyStop;
                 @KeyStop.performed -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyStop;
                 @KeyStop.canceled -= m_Wrapper.m_MouseActionsCallbackInterface.OnKeyStop;
+                @Multiselect.started -= m_Wrapper.m_MouseActionsCallbackInterface.OnMultiselect;
+                @Multiselect.performed -= m_Wrapper.m_MouseActionsCallbackInterface.OnMultiselect;
+                @Multiselect.canceled -= m_Wrapper.m_MouseActionsCallbackInterface.OnMultiselect;
             }
             m_Wrapper.m_MouseActionsCallbackInterface = instance;
             if (instance != null)
@@ -571,6 +596,9 @@ public class @MouseInput : IInputActionCollection, IDisposable
                 @KeyStop.started += instance.OnKeyStop;
                 @KeyStop.performed += instance.OnKeyStop;
                 @KeyStop.canceled += instance.OnKeyStop;
+                @Multiselect.started += instance.OnMultiselect;
+                @Multiselect.performed += instance.OnMultiselect;
+                @Multiselect.canceled += instance.OnMultiselect;
             }
         }
     }
@@ -728,6 +756,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
         void OnCommandClick(InputAction.CallbackContext context);
         void OnKeyAttack(InputAction.CallbackContext context);
         void OnKeyStop(InputAction.CallbackContext context);
+        void OnMultiselect(InputAction.CallbackContext context);
     }
     public interface IShortcutActions
     {

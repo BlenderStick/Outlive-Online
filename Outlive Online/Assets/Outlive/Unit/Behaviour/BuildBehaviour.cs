@@ -34,7 +34,7 @@ namespace Outlive.Unit.Behaviour
             }
             else
             {
-                throw new System.Exception("O GameObject não possui um Component que herda de IConstructorHandler");
+                throw new System.Exception("O GameObject não possui um Component que herda de IConstructorHandler, tente adicionar o Script BasicConstructor");
             }
         }
 
@@ -66,6 +66,7 @@ namespace Outlive.Unit.Behaviour
                 BuildCommand buildCommand = (BuildCommand) command;
 
                 buildCommand.constructable.ConstructorNotTryToBuild(constructor);
+                constructor.DisconectConstructable(buildCommand.constructable);
             }
         }
     }

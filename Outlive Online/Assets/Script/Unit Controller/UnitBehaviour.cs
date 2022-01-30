@@ -5,11 +5,12 @@ using UnityEngine.Tilemaps;
 using UnityEngine.AI;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
+using Outlive.Manager.Generic;
 
 public class UnitBehaviour : MonoBehaviour, ICommandableUnit
 {
 
-    [SerializeField] private Player playerController;
+    [SerializeField] private IPlayer _player;
     public Tilemap map;
 
     private List<ICommand> commands;
@@ -27,15 +28,16 @@ public class UnitBehaviour : MonoBehaviour, ICommandableUnit
 
     public string GetGUIName { get => getGUIName();}
 
-    public Player player 
+    public IPlayer player 
     {
         get
         {
-            return playerController;
+            return _player;
         }
         set
         {
-            playerController = value;
+            _player = value;
+            updateColor();
         }
     }
 
@@ -45,15 +47,21 @@ public class UnitBehaviour : MonoBehaviour, ICommandableUnit
     }
 
     private UnitBehaviour(){}
-    public UnitBehaviour(Player player)
+    public UnitBehaviour(IPlayer player)
     {
-        this.playerController = player;
+        this._player = player;
+    }
+
+    private void updateColor()
+    {
+        gameObject.GetComponent<Renderer>().material.SetColor("_Color", player.color);
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        gameObject.GetComponent<Renderer>().material.SetColor("_Color", player.color);
+        if (player != null)
+            updateColor();
         commands = new List<ICommand>();
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshObstacle = GetComponent<NavMeshObstacle>();

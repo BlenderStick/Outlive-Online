@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Outlive.Manager.Generic;
 using Outlive.Unit.Command;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace Outlive.Unit.Generic
         void PutInteract(GameObject target, bool enfilerate);
         void UpdateCommand();
 
-        Player player{get;}
+        IPlayer player{get; set;}
     }
 }
 

@@ -116,7 +116,6 @@ namespace Outlive.Human
                         if(c == constructor)
                         {
                             constructorsBuilding[index] = null;
-                            return;
                         }
                         index++;
                     }
@@ -130,7 +129,7 @@ namespace Outlive.Human
                     }
                 }
 
-                if (haveConstructorBuilding && haveConstructors)
+                if (haveConstructorBuilding || haveConstructors)
                 {
                     CalculateConstructorsPath();
                 }

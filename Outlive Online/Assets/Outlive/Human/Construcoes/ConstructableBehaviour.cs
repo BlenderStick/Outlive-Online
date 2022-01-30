@@ -38,6 +38,6 @@ public class ConstructableBehaviour : MonoBehaviour, IUnitConstructable
     void Update()
     {
         construct.VerifyConstructors();
-        Debug.Log(construct.countConstructorsBuilding);
+        // Debug.Log(construct.countConstructorsBuilding);
     }
 }

@@ -1,17 +1,22 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Outlive.Human.Generic;
+using Outlive.Manager.Generic;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+[Obsolete("Use UnitGeneric")]
 public class Construtor : MonoBehaviour, IConstructorHandler, IGUIUnit, ISelectableUnit, ICommandableUnit
 {
 
     private IConstructableHandler construct;
+#pragma warning disable 0649
     [SerializeField] private NavMeshAgent navigation;
     [SerializeField] private Light selectLight;
+#pragma warning restore 0649
     
     public string guiName 
     {
@@ -21,13 +26,8 @@ public class Construtor : MonoBehaviour, IConstructorHandler, IGUIUnit, ISelecta
         }
     }
 
-    public Player player
-    {
-        get
-        {
-            return null;
-        }
-    }
+    public IPlayer player{get;}
+    IPlayer ICommandableUnit.player {set => throw new System.NotImplementedException(); get => player;}
 
     public void ConnectConstructable(IConstructableHandler constructable)
     {

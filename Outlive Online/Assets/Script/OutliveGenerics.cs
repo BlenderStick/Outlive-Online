@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -78,6 +79,7 @@ namespace Outlive.Collections.Enumerator
         {
             grid.Dispose();
             grid = null;
+            GC.SuppressFinalize(this);
         }
 
         public bool MoveNext()
@@ -140,6 +142,7 @@ namespace Outlive.Collections.Enumerator
         {
             mask1.Dispose();
             mask2.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public bool MoveNext()
