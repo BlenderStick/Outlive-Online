@@ -7,6 +7,9 @@ using Outlive.Manager.Generic;
 using Outlive.Unit.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
+using UnityEditor;
 
 namespace Outlive.Manager
 { 
@@ -16,15 +19,25 @@ namespace Outlive.Manager
 
         [FormerlySerializedAs("playerMode"), SerializeField] internal PlayerMode _playerMode;
         [FormerlySerializedAs("autoStartGame"), SerializeField] private bool _autoStartGame = true;
+        [SerializeField, Description("Iniciará os players definidos no Inspector")] private bool _createDefaultPlayers = true;
 
         [SerializeField] private UnityEngine.Object[] _Object_Player;
         [SerializeField] private Player[] _players;
+        [SerializeField, HideInInspector] private string[] _current_player_name_list;
+        [SerializeField, HideInInspector] private Color[] _current_player_color_list;
+        [SerializeField, Header("Events")] private UnityEvent<PlayerChangeCallback> _onPlayerChange;
+        [SerializeField, Header("Events")] private UnityEvent<PlayerListChangeCallback> _onPlayerListChange;
+        [SerializeField, Header("Events")] private UnityEvent<IGameManager> _onGameManagerStart;
         private IPlayer[] _iPlayers;
 
+        ///<summary> Armazena os objetos de todos os players </summary>
         protected IList<GameObject>[] _playerObjects;
         protected ReaderWriterLock[] _playersRWLock;
         public bool isGameStarted {get; private set;}
-
+        public UnityEvent<PlayerChangeCallback> OnPlayerNameChange { get => _onPlayerChange;}
+        public UnityEvent<PlayerListChangeCallback> OnPlayerListChange { get => _onPlayerListChange;}
+        
+        public UnityEvent<IGameManager> OnGameManagerStart { get => _onGameManagerStart;}
 
         public bool CreatePlayers(params System.Object[] players)
         {
@@ -201,25 +214,27 @@ namespace Outlive.Manager
 
         private void Awake() 
         {
+            if (_createDefaultPlayers)
+                CreateDefaultPlayers();
 
             if (!_autoStartGame)
                 return;
 
-            StartGame();
-            // ;
 
-            // _players = new IPlayer[CreatedPlayers.Count];
-            // for (int i = 0; i < CreatedPlayers.Count; i++)
-            // {
-            //     _players[i] = CreatedPlayers[i];
-            // }
-                
+
+            StartGame();
+        }
+
+        public void StartGame()
+        {
+            FirePlayerListChange();
+            _onGameManagerStart.Invoke(this);
         }
 
         ///<summary>
-        ///Inicia os e configura os players.
+        ///Inicia e configura os players.
         ///</summary>
-        public void StartGame()
+        public void CreateDefaultPlayers()
         {
             if (_playerMode == PlayerMode.ManualCreate)
                 CreatePlayers(_players);
@@ -243,6 +258,107 @@ namespace Outlive.Manager
         void Update()
         {
 
+        }
+
+        internal void CheckListUpdate(bool force = false)
+        {
+            if (!force && _current_player_name_list.Length == _players.Length)
+                return;
+
+            _current_player_name_list = new string[_players.Length];
+            _current_player_color_list = new Color[_players.Length];
+            for (int i = 0; i < _players.Length; i++)
+            {
+                IPlayer player = _players[i];
+                _current_player_name_list[i] = player.displayName;
+                _current_player_color_list[i] = player.color;
+            }
+            FirePlayerListChange();
+        }
+
+        internal void CheckPlayersChange(bool force = false)
+        {
+            for (int i = 0; i < _players.Length; i++)
+            {
+                IPlayer player = _players[i];
+                string lastName = _current_player_name_list[i];
+                Color lastColor = _current_player_color_list[i];
+
+                if (force || player.displayName != lastName || player.color != lastColor)
+                    _onPlayerChange.Invoke(new PlayerChangeCallback(this, lastName, player.displayName, lastColor, player.color));
+                
+                _current_player_name_list[i] = player.displayName;
+                _current_player_color_list[i] = player.color;
+            }
+
+        }
+
+        internal void CheckUpdates(bool force = false)
+        {
+            CheckListUpdate(force);
+            CheckPlayersChange(force);
+        }
+
+        internal Player GetPlayerInEditor(string name)
+        {
+            foreach (var item in _players)
+            {
+                if (item.displayName == name)
+                    {return item;}
+            }
+            return null;
+        }
+
+        internal string checkExistPlayerName(string name)
+        {
+            foreach (var item in _players)
+            {
+                if (item.displayName == name)
+                    return name + "_001";
+            }
+            return name;
+        }
+
+        public void FirePlayerListChange()
+        {
+            if (Application.isPlaying)
+            {
+                _onPlayerListChange.Invoke(new PlayerListChangeCallback(this, Array.ConvertAll(_iPlayers, player => player.displayName)));
+            }
+            else
+            {
+                _onPlayerListChange.Invoke(new PlayerListChangeCallback(this, _current_player_name_list));
+            }
+        }
+
+        public class PlayerListChangeCallback
+        {
+            internal PlayerListChangeCallback(Generic.IGameManager manager, string[] players)
+            {
+                this.manager = manager;
+                this.players = players;
+            }
+            public Generic.IGameManager manager {get; private set;}
+            public string[] players {get; private set;}
+
+        }
+
+        public class PlayerChangeCallback
+        {
+            internal PlayerChangeCallback(Generic.IGameManager manager, String lastName, String currentName, Color lastColor, Color currentColor)
+            {
+                this.manager = manager;
+                this.lastName = lastName;
+                this.currentName = currentName;
+                this.lastColor = lastColor;
+                this.currentColor = currentColor;
+            }
+
+            public Generic.IGameManager manager {get; private set;}
+            public string lastName {get; private set;}
+            public string currentName {get; private set;}
+            public Color lastColor {get; private set;}
+            public Color currentColor {get; private set;}
         }
 
         public enum PlayerMode

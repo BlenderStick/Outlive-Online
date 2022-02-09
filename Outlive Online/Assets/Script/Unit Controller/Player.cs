@@ -13,6 +13,7 @@ using Outlive.Human.Construcoes;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
 
+[Obsolete]
 public class Player : MonoBehaviour
 {
     // public MouseInput mouseInput;
@@ -155,7 +156,7 @@ public class Player : MonoBehaviour
     {
         foreach (ISelectableUnit unit in unitsSelectables)
         {
-            unit.UnidDeselect();
+            unit.UnitDeselect();
         }
         unitsSelectables.Clear();
     }
@@ -344,7 +345,7 @@ public class Player : MonoBehaviour
         List<string> names = new List<string>();
         foreach (IGUIUnit u in unitsGUI)
         {
-            string n = u.guiName;
+            string n = "";
             if(!names.Contains(n))
                 names.Add(n);
         }

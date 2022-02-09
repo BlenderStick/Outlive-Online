@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Outlive.Manager.Generic;
 using UnityEngine;
@@ -8,28 +9,23 @@ namespace Outlive.Unit
     [AddComponentMenu("Outlive/Unit/Material")]
     public class UnitMaterial : MonoBehaviour
     {
+        [SerializeField] private SkinnedMeshRenderer _skin;
+        [SerializeField] private int _materialIndex;
+        [SerializeField] private Color _undefinedColor = Color.white;
 
-        [SerializeField] private Material _teamMaterial;
-        // Start is called before the first frame update
-        void Start()
+        public void OnColorChange(Color color)
         {
-            
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            
-        }
-
-        public void SetupMaterial(UnitStarter.StarterEvent evt)
-        {
-            if (_teamMaterial == null)
+            if (_materialIndex < 0)
                 return;
-            Color cor = evt.currentPlayer == null? Color.white: evt.currentPlayer.color;
 
-            _teamMaterial.SetColor("_Color", cor);
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+            _skin.GetPropertyBlock(propertyBlock, _materialIndex);
+            propertyBlock.SetColor("_Color", color);
+
+            _skin.SetPropertyBlock(propertyBlock, _materialIndex);
         }
+
+        public void OnPlayerLoad(IPlayer player) => OnColorChange(player == null? _undefinedColor : player.color);
     }
 }
 

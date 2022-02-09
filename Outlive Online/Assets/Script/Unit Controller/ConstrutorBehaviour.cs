@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Outlive.Manager.Generic;
+using System;
 
+[Obsolete]
 public class ConstrutorBehaviour : GenericFireUnit
 {
 
@@ -58,7 +60,7 @@ public class ConstrutorBehaviour : GenericFireUnit
                 
                 // EditorGUI
                 ConstructorMainGUI = Instantiate<GameObject>(refObj, Vector3.zero, Quaternion.Euler(0, 0, 0), evt.Obj.transform);
-                ConstructorMainGUI.GetComponent<ConstructorMainGUIInput>().Player = evt.Player;
+                // ConstructorMainGUI.GetComponent<ConstructorMainGUIInput>().Player = evt.Player;
             }
             ConstructorMainGUI.SetActive(true);
         } 
@@ -77,7 +79,7 @@ public class ConstrutorBehaviour : GenericFireUnit
                 
                 // EditorGUI
                 ConstructorBasicGUI = Instantiate<GameObject>(refObj, Vector3.zero, Quaternion.Euler(0, 0, 0), evt.Obj.transform);
-                ConstructorBasicGUI.GetComponent<ConstructorBasicGUIInput>().Player = evt.Player;
+                // ConstructorBasicGUI.GetComponent<ConstructorBasicGUIInput>().Player = evt.Player;
             }
             ConstructorBasicGUI.SetActive(true);
         } 
@@ -98,7 +100,7 @@ public class ConstrutorBehaviour : GenericFireUnit
                 
                 // EditorGUI
                 ConstructorResourcesGUI = Instantiate<GameObject>(refObj, Vector3.zero, Quaternion.Euler(0, 0, 0), evt.Obj.transform);
-                ConstructorResourcesGUI.GetComponent<ConstructorResourcesGUIInput>().Player = evt.Player;
+                // ConstructorResourcesGUI.GetComponent<ConstructorResourcesGUIInput>().Player = evt.Player;
             }
             ConstructorResourcesGUI.SetActive(true);
         } 

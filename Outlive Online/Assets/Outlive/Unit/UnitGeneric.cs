@@ -1,37 +1,38 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Outlive.Unit.Interacts;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
 using UnityEngine;
 using Outlive.Manager.Generic;
+using Outlive.GUI;
+using Outlive.GUI.Generic;
+using Outlive.Manager;
+using UnityEngine.Events;
 
 namespace Outlive.Unit
 {
-    [AddComponentMenu("Outlive/Unit/Unit"), RequireComponent(typeof(UnitStarter))]
-    public class UnitGeneric : MonoBehaviour, ICommandableUnit, IGUIUnit, ISelectableUnit
+    [AddComponentMenu("Outlive/Unit/Unit"), ExecuteInEditMode]
+    public class UnitGeneric : MonoBehaviour, ICommandableUnit, IGUIUnit, ISelectableUnit, IPlayerInjectable
     {
 
 #pragma warning disable 0649
-        [SerializeField] private string _guiName;
-        [SerializeField] private IPlayer _player;
+        [SerializeField] private GUILoader _guiLoader;
         [SerializeField] private BasicBehaviour[] _behaviours;
         [SerializeField] private IUnitInteract[] _interacts;
+        [SerializeField, HideInInspector] private string[] _playersList;
+        [SerializeField] private int _playerIndex;
+        [SerializeField] private PlayerInjector _injector;
+        [SerializeField] private UnityEvent<IPlayer> _updatePlayerDependency;
+        [SerializeField] private UnityEvent<Color> _onColorChange;
 #pragma warning restore 0649
+        private IPlayer _player;
 
         private IList<ICommand> _commands;
-        private Object _commandLock;
+        private object _commandLock;
         private ICommand _currentCommand;
         private IBehaviour _currentBehaviour;
-
-        // [SerializeField]
-        public string guiName 
-        {
-            get
-            {
-                return _guiName;
-            }
-        }
 
         public IPlayer player 
         {
@@ -46,13 +47,9 @@ namespace Outlive.Unit
             }
         }
 
-        public void GUILostFocus()
-        {}
+        public IGUILoader guiLoader => _guiLoader;
 
-        public void GUIReceivedFocus()
-        {}
-
-        public void PutCommand(ICommand command, bool enfilerate)
+        public virtual void PutCommand(ICommand command, bool enfilerate)
         {
             lock (_commandLock)
             {
@@ -98,7 +95,7 @@ namespace Outlive.Unit
             
         }
 
-        public void PutInteract(GameObject target, bool enfilerate)
+        public virtual void PutInteract(GameObject target, bool enfilerate)
         {
             lock (_commandLock)
             {
@@ -186,7 +183,7 @@ namespace Outlive.Unit
 #pragma warning restore 0649
 
             private bool selected;
-            public void UnidDeselect()
+            public void UnitDeselect()
             {
                 if (!enabled)
                     return;
@@ -238,14 +235,35 @@ namespace Outlive.Unit
             }
         }
 
+        private void Awake()
+        {
+            if (!Application.IsPlaying(gameObject))
+            {
+                PlayerInjector injector = FindObjectOfType<PlayerInjector>();
+                if (injector != null)
+                    injector.AddInjectable(this);
+            }
+        }
+
+        private void OnDestroy() 
+        {
+            if (Application.IsPlaying(gameObject))
+                return;
+                
+            PlayerInjector injector = FindObjectOfType<PlayerInjector>();
+            if (injector != null)
+                injector.RemoveInjectable(this);
+            
+        }
+
         // Start is called before the first frame update
         void Start()
         {
-            _commandLock = new Object();
+            _commandLock = new object();
             _commands = new List<ICommand>();
             if (player != null && selection != null)
             {
-                UnidDeselect();
+                UnitDeselect();
             }
         }
 
@@ -261,5 +279,54 @@ namespace Outlive.Unit
             evt.gameManager.UnitNotify(gameObject, player);
         }
 
+        void IPlayerInjectable.OnInjectablePlayerListChange(IGameManager manager, string[] players)
+        {
+            _playersList = new string[players.Length + 1];
+            _playersList[0] = "Undefined";
+            Array.Copy(players, 0, _playersList, 1, players.Length);
+        }
+
+        void IPlayerInjectable.OnInjectablePlayerChange(IGameManager manager, string lastName, string currentName, Color lastColor, Color currentColor)
+        {
+            for (int i = 1; i < _playersList.Length; i++)
+                if (_playersList[i] == lastName)
+                {
+                    _playersList[i] = currentName;
+                    break;
+                }
+
+            if (_playerIndex < 1)
+            {
+                _onColorChange.Invoke(Color.white);
+                return;
+            }
+
+            if (currentName == _playersList[_playerIndex])
+            {
+                _onColorChange.Invoke(currentColor);
+            }
+        }
+
+        void IPlayerInjectable.OnGameManagerStart(IGameManager manager)
+        {
+            if (_playerIndex < 0)
+                return;
+                
+            _player = manager.GetPlayer(_playersList[_playerIndex]);
+            _updatePlayerDependency.Invoke(_player);
+        }
+
+        void IPlayerInjectable.OnInjectorSet(PlayerInjector injector)
+        {
+            _injector = injector;
+        }
+
+        internal void ForceInjectorUpdate(int newIndex)
+        {
+            if (newIndex > 0)
+                _injector.UpdateInjectable(this, _playersList[newIndex]);
+            else
+                _onColorChange.Invoke(Color.white);
+        }
     }
 }

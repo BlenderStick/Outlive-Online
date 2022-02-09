@@ -7,6 +7,7 @@ using UnityEditor;
 using Photon.Pun;
 using Outlive.Manager.Generic;
 using Outlive.Unit;
+using UnityEngine.Events;
 
 namespace Outlive.Manager.Editor
 {
@@ -17,12 +18,32 @@ namespace Outlive.Manager.Editor
         static GUIContent _guiAutoStart = new GUIContent("Auto Start Game", "Inicia os players junto com o Awake.\nDefina como false para cenas que precisam ser pre configuradas em tempo de execução.");
         static GUIContent _guiManualOrRef = new GUIContent("Modo de criação de jogadores");
         static GUIContent _guiPlayers = new GUIContent("Players");
+
         private GameManager gameManager;
         ///<summary> Usado para acionar os eventos de UnitStarter </summary>
         private bool isChanged;
+        private SerializedProperty mode, autoStart, defaultPlayer, players;
+
+        private bool _events_foldout;
+        private SerializedProperty[] _events;
 
         public void OnEnable() {
             gameManager = (GameManager) this.target;
+            mode = serializedObject.FindProperty("_playerMode");
+            autoStart = serializedObject.FindProperty("_autoStartGame");
+            defaultPlayer = serializedObject.FindProperty("_createDefaultPlayers");
+
+            if (gameManager._playerMode == GameManager.PlayerMode.Reference)
+                players = serializedObject.FindProperty("_Object_Player");
+            else
+                players = serializedObject.FindProperty("_players");
+
+            _events = new SerializedProperty[]
+            {
+                serializedObject.FindProperty("_onPlayerChange"),
+                serializedObject.FindProperty("_onPlayerListChange"),
+                serializedObject.FindProperty("_onGameManagerStart"),
+            };
 
             // SerializedProperty m_CreatedPlayers = serializedObject.FindProperty("CreatedPlayers");
             // for (int i = 0; i < m_CreatedPlayers.arraySize; i++)
@@ -32,24 +53,10 @@ namespace Outlive.Manager.Editor
         }
         public override void OnInspectorGUI() {
 
-
-            SerializedProperty mode = serializedObject.FindProperty("_playerMode");
-            SerializedProperty autoStart = serializedObject.FindProperty("_autoStartGame");
-            
-
-            SerializedProperty players;
-            if (gameManager._playerMode == GameManager.PlayerMode.Reference)
-            {
-                players = serializedObject.FindProperty("_Object_Player");
-                // GUIPlayerList("", false, false);
-            }
-            else
-            {
-                players = serializedObject.FindProperty("_players");
-                // GUIPlayerList("CreatedPlayers", false, !Application.isPlaying);
-            }
+            bool fireEvents = false;
 
             EditorGUILayout.PropertyField(autoStart, _guiAutoStart);
+            EditorGUILayout.PropertyField(defaultPlayer);
 
             EditorGUI.BeginChangeCheck();
 
@@ -62,8 +69,17 @@ namespace Outlive.Manager.Editor
                 {
                     players.GetArrayElementAtIndex(i).FindPropertyRelative("_inspectorGameManager").objectReferenceValue = gameManager;
                 }
-                NotifyUnitStarter();
+                fireEvents = true;
             }
+
+
+            _events_foldout = EditorGUILayout.BeginFoldoutHeaderGroup(_events_foldout, "Events");
+
+            if (_events_foldout)
+                foreach (var item in _events)
+                    EditorGUILayout.PropertyField(item);
+
+            EditorGUILayout.EndFoldoutHeaderGroup();
                 
             // if (gameManager._playerMode == GameManager.PlayerMode.Reference)
             //     if (players != gameManager._Object_Player)
@@ -72,6 +88,8 @@ namespace Outlive.Manager.Editor
 
 
             serializedObject.ApplyModifiedProperties();
+            if (fireEvents)
+                gameManager.CheckUpdates();
             // if (GUI.Button(new Rect()))
         }
 

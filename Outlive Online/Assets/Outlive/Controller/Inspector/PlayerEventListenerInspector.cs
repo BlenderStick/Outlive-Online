@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Outlive.Controller.Inspector
 {
 
-    [CustomEditor(typeof(PlayerEventListener))]
+    // [CustomEditor(typeof(PlayerEventListener))]
     public class PlayerEventListenerInspector : Editor {
 
         private static GUIContent playerControllerGUI = new GUIContent("PlayerController");

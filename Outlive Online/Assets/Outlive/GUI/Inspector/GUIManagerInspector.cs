@@ -11,6 +11,7 @@ namespace Outlive.GUI.Inspector
     public class GUIManagerInspector : Editor {
 
         static GUIContent orderGUI = new GUIContent("Order");
+        static GUIContent uiTransformGUI = new GUIContent("UI Root");
         public override void OnInspectorGUI() 
         {
             SerializedProperty order = serializedObject.FindProperty("_object_order");
@@ -23,6 +24,9 @@ namespace Outlive.GUI.Inspector
                 else if (orderValue == null || orderValue is IGUILoaderOrder)
                     order.objectReferenceValue = orderValue;
             }
+
+            SerializedProperty uiTransform = serializedObject.FindProperty("_uiTransform");
+            EditorGUILayout.PropertyField(uiTransform, uiTransformGUI);
             
             serializedObject.ApplyModifiedProperties();
         }

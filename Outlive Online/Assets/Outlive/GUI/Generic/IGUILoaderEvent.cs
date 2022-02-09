@@ -8,5 +8,7 @@ namespace Outlive.GUI.Generic
     {
         RectTransform root{get;}
         IGUILoader current{get;set;}
+
+        GUIManager manager{get;}
     }
 }

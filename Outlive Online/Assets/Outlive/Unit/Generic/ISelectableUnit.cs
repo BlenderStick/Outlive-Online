@@ -7,8 +7,9 @@ namespace Outlive.Unit.Generic
 {
     public interface ISelectableUnit
     {
+
         void UnitSelect();
-        void UnidDeselect();
+        void UnitDeselect();
         void UnitHover();
         void UnitNotHover();
     }

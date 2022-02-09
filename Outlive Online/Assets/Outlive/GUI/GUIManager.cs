@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,17 +10,19 @@ namespace Outlive.GUI
 
         public class Event : Generic.IGUILoaderEvent
         {
-            private GUIManager manager;
+            private GUIManager _manager;
             internal Event(GUIManager guiManager)
             {
-                manager = guiManager;
+                _manager = guiManager;
             }
-            public RectTransform root => manager._uiTransform;
+            public RectTransform root => _manager._uiTransform;
 
-            public Generic.IGUILoader current {get => manager.guiLoader; set => manager.guiLoader = value;}
+            public Generic.IGUILoader current {get => _manager.guiLoader; set => _manager.guiLoader = value;}
+
+            public GUIManager manager => _manager;
         }
 
-        [SerializeField] private Object _object_order;
+        [SerializeField] private UnityEngine.Object _object_order;
         [SerializeField] private RectTransform _uiTransform;
 
         private IList<Generic.IGUILoader> _loaderList;
@@ -34,8 +37,9 @@ namespace Outlive.GUI
                     _guiLoader.leave(evt);
 
                 _guiLoader = value;
-
-                _guiLoader.load(evt);
+                
+                if (_guiLoader != null)
+                    _guiLoader.load(evt);
             }
         }
         public Generic.IGUILoaderOrder guiLoaderOrder {get; set;}
@@ -49,7 +53,8 @@ namespace Outlive.GUI
                     continue;
                 tempLoaders.Add(item);
             }
-            System.GC.ReRegisterForFinalize(_loaderList);
+            if (_loaderList != null)
+                System.GC.ReRegisterForFinalize(_loaderList);
 
             if (guiLoaderOrder == null)
                 _loaderList = new List<Generic.IGUILoader>(tempLoaders);

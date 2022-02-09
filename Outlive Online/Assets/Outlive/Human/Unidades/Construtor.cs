@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Outlive.GUI.Generic;
 using Outlive.Human.Generic;
 using Outlive.Manager.Generic;
 using Outlive.Unit.Command;
@@ -28,6 +29,8 @@ public class Construtor : MonoBehaviour, IConstructorHandler, IGUIUnit, ISelecta
 
     public IPlayer player{get;}
     IPlayer ICommandableUnit.player {set => throw new System.NotImplementedException(); get => player;}
+
+    public IGUILoader guiLoader => throw new NotImplementedException();
 
     public void ConnectConstructable(IConstructableHandler constructable)
     {
@@ -116,7 +119,7 @@ public class Construtor : MonoBehaviour, IConstructorHandler, IGUIUnit, ISelecta
         }
     }
 
-    public void UnidDeselect()
+    public void UnitDeselect()
     {
         if (selectLight != null)
             selectLight.enabled = true;
