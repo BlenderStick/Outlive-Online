@@ -11,16 +11,18 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using Outlive.Controller.Generic;
 using System;
+using Outlive.Manager;
 
 namespace Outlive.Controller
 {
     [AddComponentMenu("Outlive/Player/Controller")]
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : MonoBehaviour, IPlayerInjectable
     {
 
 #pragma warning disable 0649
         [SerializeField] private PlayerInput _input;
         [SerializeField] private Camera _mainCamera;
+        [SerializeField] private PlayerSelect _player;
         [SerializeField] private LayerMask _layerSelectable;
         [SerializeField] private UnityEvent<CallbackContextFocus> _onFocusChange;
         [SerializeField] private UnityEvent<CallbackContext> _onSelect;
@@ -239,11 +241,6 @@ namespace Outlive.Controller
                 OnFocusChange.Invoke(new CallbackContextFocus(focus, state, _mousePosition, this, player));
         }
 
-        public void OnUnitStarter(UnitStarter.StarterEvent evt)
-        {
-            player = evt.currentPlayer;
-        }
-
         private void listenSelectionChange(GameObject selected, Selection selection, bool gained)
         {
             _onSelectionChange.Invoke(
@@ -252,6 +249,26 @@ namespace Outlive.Controller
                     state:      gained? SelectionState.Gained : SelectionState.Lost, 
                     selection:  selection, 
                     controller: this));
+        }
+
+        void IPlayerInjectable.OnInjectablePlayerListChange(IGameManager manager, string[] players)
+        {
+            _player.SetPlayerList(players);
+        }
+
+        void IPlayerInjectable.OnInjectablePlayerChange(IGameManager manager, string lastName, string currentName, Color lastColor, Color currentColor)
+        {
+            _player.UpdateName(lastName, currentName);
+        }
+
+        void IPlayerInjectable.OnGameManagerStart(IGameManager manager)
+        {
+            player = manager.GetPlayer(_player.PlayerName);
+        }
+
+        void IPlayerInjectable.OnInjectorSet(PlayerInjector injector)
+        {
+
         }
     }
 

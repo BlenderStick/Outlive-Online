@@ -9,10 +9,14 @@ namespace Outlive.GUI.Generic
         ///<summary>
         ///Carrega a GUI na janela do jogador
         ///</summary>
-        void load(IGUILoaderEvent evt);
+        void Load(GUIManager.CallbackContext ctx);
+        ///<summary>
+        ///Atualiza a interface
+        ///</summary>
+        void Update(GUIManager.CallbackContext ctx);
         ///<summary>
         ///Remove a GUI da janela do jogador
         ///</summary>
-        void leave(IGUILoaderEvent evt);
+        void Leave(GUIManager.CallbackContext ctx);
     }
 }

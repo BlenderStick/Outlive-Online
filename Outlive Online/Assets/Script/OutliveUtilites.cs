@@ -1,5 +1,10 @@
+using System.Timers;
+using System.ComponentModel;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
+using System.Linq;
 
 namespace Outlive
 {
@@ -113,6 +118,11 @@ namespace Outlive
         ///<param name="pointRadius"> angulo em radiano </param>
         public static Vector2[] CalculatePointsAround(Vector2 center, float pointRadius, int numberOfPoints, IEnumerable<Vector2Int> mask, int lenghtMask, float preferredAngle)
         {
+            if (pointRadius <= 0)
+                throw new ArgumentOutOfRangeException("pointRadius não pode ser 0 ou negativo");
+
+            if (numberOfPoints == 0)
+                return new Vector2[0];
 
             Vector2[] vects = new Vector2[numberOfPoints];
 
@@ -127,20 +137,19 @@ namespace Outlive
                 index++;
             }
 
-            float camadaRaio = camada * 2 * pointRadius;
+            float camadaRaio = camada * 2;
 
             while (index < numberOfPoints)
             {
                 float meiaCircunferencia = camadaRaio * Mathf.PI;
 
-                int maxPoints = (int) (meiaCircunferencia / pointRadius);
+                int maxPoints = (int) (meiaCircunferencia);
                 if(maxPoints > numberOfPoints - index)
                     maxPoints = numberOfPoints - index;
 
                 float angleStep = Mathf.PI * 2 / (float) maxPoints;
 
                 float standAngle = preferredAngle;
-                Debug.Log(camada);
                 for (int i = 0; i < maxPoints; i++)
                 {
                     float x = Mathf.Cos(standAngle) * camadaRaio + center.x;
@@ -376,6 +385,8 @@ namespace Outlive
             }
             return newVects;
         }
+        public static Vector3 From2DTo3DCoordinates(Vector2 vect) => new Vector3(vect.x, 0, vect.y);
+        public static Vector2 From3DTo2DCoordinates(Vector3 vect) => new Vector2(vect.x, vect.z);
 
         ///<summary>
         ///Reorganiza <paramref name="toReorde"/> do ponto mais distante para o menos distante de <paramref name="reference"/>
@@ -407,6 +418,7 @@ namespace Outlive
                         {
                             minVect = cVect;
                             minDist = cDist;
+                            final[count] = cVect;
                         }
                     }
 
@@ -417,6 +429,99 @@ namespace Outlive
             }
             return reference;
             
+        }
+        ///<summary>
+        ///Reorganiza <paramref name="toReorde"/> do ponto mais distante para o menos distante de <paramref name="original"/>
+        ///</summary>
+        ///<param name="original"> Posições de referência para o calculo</param>
+        ///<param name="toReorde"> Posições que serão reordenadas na lista</param>
+        public static ICollection<Vector2> ReorganizarPeloMaisDistante(ICollection<Vector2> original, IEnumerable<Vector2> toReorde)
+        {
+            List<Vector2> List_toReorde = new List<Vector2>(toReorde);
+            if(original == null || List_toReorde == null)
+                throw new System.ArgumentNullException();
+            if(original.Count > 0 && List_toReorde.Count >= original.Count)
+            {
+                Vector2[] final = new Vector2[original.Count];
+
+                int count = 0;
+                Vector2 current = List_toReorde[0];
+                // alvoEnum.
+
+                foreach (Vector2 originalItem in original)
+                {
+                    Vector2 minVect = List_toReorde[count];
+                    float minDist = (originalItem - minVect).sqrMagnitude;
+
+                    for (int i = count; i < List_toReorde.Count; i++)
+                    {
+                        Vector2 cVect = List_toReorde[i];
+                        float cDist = (cVect - originalItem).sqrMagnitude;
+                        if (cDist < minDist)
+                        {
+                            minVect = cVect;
+                            minDist = cDist;
+                            final[count] = cVect;
+                        }
+                    }
+
+                    count ++;
+                }
+
+                return final;
+            }
+            return original;
+            
+        }
+
+        /// <summary>FIX-ME</summary>
+        public static Vector2[] ReorganizarPeloMaisDistante(Vector2 target, Vector2[] pointsToOrganize)
+        {
+            
+            if (pointsToOrganize == null)
+                return new Vector2[0];
+
+            if (pointsToOrganize.Length <= 1)
+                return pointsToOrganize;
+
+            float[] sqrMagnitudes = new float[pointsToOrganize.Length];
+
+            for (int i = 0; i < pointsToOrganize.Length; i++)
+                sqrMagnitudes[i] = (target - pointsToOrganize[i]).sqrMagnitude;
+            
+            Vector2[] result = new Vector2[pointsToOrganize.Length];
+            bool[] distanceChecked = new bool[pointsToOrganize.Length];
+
+            int start = 0, end = pointsToOrganize.Length;
+            // bool[] 
+            for (int i = 0; i < pointsToOrganize.Length; i++)
+            {
+                float lastDistance = sqrMagnitudes[start];
+                Vector2 lastVector = pointsToOrganize[start];
+                int index = start;
+                for (int x = start + 1; x < end; x++)
+                {
+                    if (distanceChecked[x])
+                        continue;
+
+                    if (sqrMagnitudes[x] < lastDistance)
+                    {
+                        lastDistance = sqrMagnitudes[x];
+                        lastVector = pointsToOrganize[x];
+                        index = x;
+                    }
+                }
+
+                if (index == start)
+                    start++;
+                if (index == end - 1)
+                    end--;
+                distanceChecked[index] = true;
+                result[i] = lastVector;
+
+            }
+
+            return result;
         }
 
         public static bool CheckIsNull(object obj)

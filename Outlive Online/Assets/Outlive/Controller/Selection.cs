@@ -19,11 +19,17 @@ namespace Outlive.Controller
             get
             {
                 _rwlSelection.AcquireReaderLock(5000);
-                foreach (var item in _selection)
+                try
                 {
-                    yield return item;
+                    foreach (var item in _selection)
+                    {
+                        yield return item;
+                    }
                 }
-                _rwlSelection.ReleaseReaderLock();
+                finally
+                {
+                    _rwlSelection.ReleaseReaderLock();
+                }
             }
         }
         public int Count => _selection.Count;

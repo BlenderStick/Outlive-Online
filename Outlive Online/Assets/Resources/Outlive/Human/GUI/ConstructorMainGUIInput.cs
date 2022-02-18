@@ -14,29 +14,17 @@ using Outlive.GUI.Generic;
 using Outlive.GUI;
 using System.Threading.Tasks;
 
-public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
+public class ConstructorMainGUIInput : MonoBehaviour, IGUILoader
 {
+    [SerializeField] private LayerMask _mapLayer;
 
-    [SerializeField] private GenericGUILoader _constructorBasicLoader;
-    [SerializeField] private GenericGUILoader _constructorResourcesLoader;
     private Vector2 mousePosition;
     private bool isAttack;
     private bool isRepair;
 
-    private PlayerController controller;
+    private PlayerController _controller;
     private GUIManager manager;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        controller = FindObjectOfType<PlayerController>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    private Selection _selection;
 
     public void ActionClick(InputAction.CallbackContext context)
     {
@@ -48,7 +36,7 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
             if (RayCastInMap(mousePosition, out coord))
             {
                 AttackCommand command = new AttackCommand(coord);
-                foreach (GameObject b in controller.Selection.Selected)
+                foreach (GameObject b in _controller.Selection.Selected)
                 {
                     ICommandableUnit commandable;
                     if (b.TryGetComponent(out commandable))
@@ -59,20 +47,20 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
 
 
             isAttack = false;
-            controller.EnableInputs(this);
+            _controller.EnableInputs(this);
         }
         if (isRepair)
         { 
             RaycastHit hit;
             // int layerMask = 1 << LayerMask.NameToLayer("Default");
-            if (Physics.Raycast(controller.Camera.ScreenPointToRay(mousePosition), out hit))
+            if (Physics.Raycast(_controller.Camera.ScreenPointToRay(mousePosition), out hit))
             {
                 Collider collider = hit.collider;
                 IUnitConstructable uConst;
 
                 if (collider.TryGetComponent(out uConst))
                 {
-                    foreach (GameObject item in controller.Selection.Selected)
+                    foreach (GameObject item in _controller.Selection.Selected)
                     {
                         ICommandableUnit commandable;
                         if (item.TryGetComponent(out commandable))
@@ -82,7 +70,7 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
             }
 
             isRepair = false;
-            controller.EnableInputs(this);
+            _controller.EnableInputs(this);
         }
     }
     public void CancelClick(InputAction.CallbackContext context)
@@ -91,12 +79,12 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
             return;
         if(isAttack)
         {
-            controller.EnableInputs(this);
+            _controller.EnableInputs(this);
             isAttack = false;
         }
         if (isRepair)
         {
-            controller.EnableInputs(this);
+            _controller.EnableInputs(this);
             isRepair = false;
         }
     }
@@ -107,7 +95,7 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
             return;
         isAttack = true;
 
-        controller.DisableInputs(this);
+        _controller.DisableInputs(this);
         
     }
 
@@ -115,7 +103,7 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
     {
         if (!context.performed)
             return;
-        foreach (GameObject item in controller.Selection.Selected)
+        foreach (GameObject item in _controller.Selection.Selected)
         {
             ICommandableUnit commandable;
             if (item.TryGetComponent(out commandable))
@@ -128,21 +116,22 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
         if (!context.performed)
             return;
         // new SetGUI(player, "constructorBasic");
-        manager.guiLoader = _constructorBasicLoader;
+        Debug.Log("BasicConstructions");
+        manager.SetGUIPrefab(Outlive.GUILoad.Constructor_Basic, _controller, _selection);
     }
     public void ResourceConstructions(InputAction.CallbackContext context)
     {
         if (!context.performed)
             return;
         // new SetGUI(player, "constructorResources");
-        manager.guiLoader = _constructorResourcesLoader;
+        manager.SetGUIPrefab(Outlive.GUILoad.Constructor_Resources, _controller, _selection);
     }
 
     public void RepairConstruction(InputAction.CallbackContext context)
     {
         if (!context.performed)
             return;
-        controller.DisableInputs(this);
+        _controller.DisableInputs(this);
         isRepair = true;
     }
     
@@ -165,7 +154,7 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
     private bool RayCastInMap(Vector2 position, out Vector3 coordenates)
     {
         RaycastHit hit;
-        if (Physics.Raycast(controller.Camera.ScreenPointToRay(position), out hit))
+        if (Physics.Raycast(_controller.Camera.ScreenPointToRay(position), out hit))
         {
             if (hit.collider.GetComponent<ICommandableUnit>() == null)
             {
@@ -178,19 +167,21 @@ public class ConstructorMainGUIInput : MonoBehaviour, IUIListener
         return false;
     }
 
-    public void onLoad(IGUILoaderEvent evt)
+    void IGUILoader.Load(GUIManager.CallbackContext ctx)
     {
-        manager = evt.manager;
+        _controller = ctx.controller;
+        manager = ctx.guiManager;
+        _selection = ctx.selection;
     }
 
-    public void onLeave(IGUILoaderEvent evt)
+    void IGUILoader.Update(GUIManager.CallbackContext ctx)
     {
-        // Task task = nullLoader();
-        // task.Start();
-        // await Task.Run(nullLoader);
     }
-    // async Task nullLoader()
-    // {
-    //     await Task.Run(() => guiLoaderEvent = null);
-    // }
+
+    void IGUILoader.Leave(GUIManager.CallbackContext ctx)
+    {
+        _controller = null;
+        manager = null;
+        Destroy(gameObject);
+    }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Outlive.Unit.Interacts;
 using Outlive.Unit.Command;
@@ -10,24 +9,22 @@ using Outlive.GUI;
 using Outlive.GUI.Generic;
 using Outlive.Manager;
 using UnityEngine.Events;
+using Outlive.Controller;
 
 namespace Outlive.Unit
 {
     [AddComponentMenu("Outlive/Unit/Unit"), ExecuteInEditMode]
-    public class UnitGeneric : MonoBehaviour, ICommandableUnit, IGUIUnit, ISelectableUnit, IPlayerInjectable
+    public abstract class UnitGeneric : MonoBehaviour, ICommandableUnit, IGUIUnit, ISelectableUnit, IPlayerInjectable
     {
 
 #pragma warning disable 0649
-        [SerializeField] private GUILoader _guiLoader;
-        [SerializeField] private BasicBehaviour[] _behaviours;
         [SerializeField] private IUnitInteract[] _interacts;
-        [SerializeField, HideInInspector] private string[] _playersList;
-        [SerializeField] private int _playerIndex;
+        [SerializeField] private PlayerSelect _player;
         [SerializeField] private PlayerInjector _injector;
         [SerializeField] private UnityEvent<IPlayer> _updatePlayerDependency;
         [SerializeField] private UnityEvent<Color> _onColorChange;
 #pragma warning restore 0649
-        private IPlayer _player;
+        private IPlayer _playerProperty;
 
         private IList<ICommand> _commands;
         private object _commandLock;
@@ -38,60 +35,35 @@ namespace Outlive.Unit
         {
             get
             {
-                return _player;
+                return _playerProperty;
             }
             set
             {
-                if(_player == null)
-                    _player = value;
+                if(_playerProperty == null)
+                    _playerProperty = value;
             }
         }
 
-        public IGUILoader guiLoader => _guiLoader;
+        public abstract string UnitName { get; }
 
         public virtual void PutCommand(ICommand command, bool enfilerate)
         {
-            lock (_commandLock)
-            {
-                if(_currentCommand == null)
+            if (command == null)
+                return;
+
+            // lock (_commandLock)
+            // {
+                if (_currentBehaviour != null)
                 {
-                    _currentCommand = command;
-                            
-                    if (command != null && !TryFindBehaviour(command, out _currentBehaviour))
-                        Debug.Log("Não há um comportamento que executa o comando recebido " + command.GetType().Name);
-                    else if (command == null)
-                    {
-                        _currentBehaviour = null;
-                    }
-                    else
-                        _currentBehaviour.Setup(gameObject);
+                    _currentBehaviour.ForceCancel(gameObject, _currentCommand);
                 }
-                else
-                {
-                    if(enfilerate)
-                    {
-                        _commands.Add(command);
-                    }
-                    else
-                    {
-                        if(_currentBehaviour != null)
-                        {
-                            _currentBehaviour.Cancel(gameObject, _currentCommand);
-                            _currentBehaviour.Reset();
-                        }
-                        _currentCommand = command;
-                        
-                        if (command != null && !TryFindBehaviour(command, out _currentBehaviour))
-                            Debug.Log("Não há um comportamento que executa o comando recebido " + command.GetType().Name);
-                        else if (command == null)
-                        {
-                            _currentBehaviour = null;
-                        }
-                        else
-                            _currentBehaviour.Setup(gameObject);
-                    }
-                }
-            }
+
+                _currentCommand = command;
+                
+                if (TryCreateBehaviour(command, out _currentBehaviour))
+                    _currentBehaviour.Setup(gameObject, command);
+
+            // }
             
         }
 
@@ -121,8 +93,8 @@ namespace Outlive.Unit
                     {
                         if(_currentBehaviour != null)
                         {
-                            _currentBehaviour.Cancel(gameObject, _currentCommand);
-                            _currentBehaviour.Reset();
+                            _currentBehaviour.ForceCancel(gameObject, _currentCommand);
+                            _currentBehaviour.Dispose();
                         }
                         
                         if (!TryFindInteract(target, out _currentCommand, out _currentBehaviour))
@@ -132,28 +104,7 @@ namespace Outlive.Unit
             }
         }
 
-        private IBehaviour FindBehaviour(ICommand command)
-        {
-            foreach (IBehaviour b in _behaviours)
-            {
-                if (b.Condition(command))
-                    return b;
-            }
-            return null;
-        }
-        private bool TryFindBehaviour(ICommand command, out IBehaviour behaviour)
-        {
-            foreach (IBehaviour b in _behaviours)
-            {
-                if (b.Condition(command))
-                {
-                    behaviour = b;
-                    return true;
-                }
-            }
-            behaviour = null;
-            return false;
-        }
+        protected abstract bool TryCreateBehaviour(ICommand command, out IBehaviour behaviour);
 
         private bool TryFindInteract(GameObject target, out ICommand command, out IBehaviour behaviour)
         {
@@ -222,16 +173,19 @@ namespace Outlive.Unit
 
         public void UpdateCommand()
         {
-            if (_currentBehaviour != null)
+            if (_currentBehaviour == null)
+                return;
+
+            lock (_commandLock)
             {
-                lock (_commandLock)
+                bool condition = !_currentBehaviour.UpdateBehaviour(gameObject, _currentCommand);
+                if (condition)
                 {
-                    if (!_currentBehaviour.UpdateBehaviour(gameObject, _currentCommand))
-                    {
-                        _currentBehaviour.Reset();
-                        _currentBehaviour = null;
-                    }
+                    _currentBehaviour.Dispose();
+                    _currentBehaviour = null;
+                    _currentCommand = null;
                 }
+                // Debug.Log(condition);
             }
         }
 
@@ -265,6 +219,7 @@ namespace Outlive.Unit
             {
                 UnitDeselect();
             }
+            _injector.UpdateManager(this);
         }
 
         // Update is called once per frame
@@ -273,47 +228,35 @@ namespace Outlive.Unit
             UpdateCommand();
         }
 
-        public void UnitStarter(UnitStarter.StarterEvent evt)
-        {
-            player = evt.currentPlayer;
-            evt.gameManager.UnitNotify(gameObject, player);
-        }
+        #region Injectable
 
         void IPlayerInjectable.OnInjectablePlayerListChange(IGameManager manager, string[] players)
         {
-            _playersList = new string[players.Length + 1];
-            _playersList[0] = "Undefined";
-            Array.Copy(players, 0, _playersList, 1, players.Length);
+            _player.SetPlayerList(players);
         }
 
         void IPlayerInjectable.OnInjectablePlayerChange(IGameManager manager, string lastName, string currentName, Color lastColor, Color currentColor)
         {
-            for (int i = 1; i < _playersList.Length; i++)
-                if (_playersList[i] == lastName)
-                {
-                    _playersList[i] = currentName;
-                    break;
-                }
+            _player.UpdateName(lastName, currentName);
 
-            if (_playerIndex < 1)
+            if (_player.isPlayerUndefined)
             {
                 _onColorChange.Invoke(Color.white);
                 return;
             }
 
-            if (currentName == _playersList[_playerIndex])
-            {
+            if (_player.PlayerName == currentName)
                 _onColorChange.Invoke(currentColor);
-            }
+
         }
 
         void IPlayerInjectable.OnGameManagerStart(IGameManager manager)
         {
-            if (_playerIndex < 0)
+            if (_player.isPlayerUndefined)
                 return;
                 
-            _player = manager.GetPlayer(_playersList[_playerIndex]);
-            _updatePlayerDependency.Invoke(_player);
+            _playerProperty = manager.GetPlayer(_player.PlayerName);
+            _updatePlayerDependency.Invoke(_playerProperty);
         }
 
         void IPlayerInjectable.OnInjectorSet(PlayerInjector injector)
@@ -321,12 +264,14 @@ namespace Outlive.Unit
             _injector = injector;
         }
 
-        internal void ForceInjectorUpdate(int newIndex)
+        internal void ForceInjectorUpdate()
         {
-            if (newIndex > 0)
-                _injector.UpdateInjectable(this, _playersList[newIndex]);
+            if (!_player.isPlayerUndefined)
+                _injector.UpdateInjectable(this, _player.PlayerName);
             else
                 _onColorChange.Invoke(Color.white);
         }
+
+        #endregion
     }
 }

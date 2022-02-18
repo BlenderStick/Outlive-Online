@@ -1,11 +1,11 @@
-﻿using Outlive.Human.Generic;
+﻿using System;
+using Outlive.Human.Generic;
 using Outlive.Unit.Command;
 using UnityEngine;
 
 namespace Outlive.Unit.Behaviour
 {
-    [CreateAssetMenu(fileName = "BuildBehaviour", menuName = "Behaviour/Builder")]
-    public class BuildBehaviour : BasicBehaviour
+    public class BuildBehaviour : IBehaviour
     {
 
         private GameObject gameObject;
@@ -13,19 +13,42 @@ namespace Outlive.Unit.Behaviour
         private bool isFirstUpdate;
 
 
-        public override bool Condition(ICommand command)
-        {
-            return command is BuildCommand;
-        }
-
-        public override void Reset()
+        public void Dispose()
         {
             gameObject = null;
             constructor = null;
-            isFirstUpdate = true;
+            GC.SuppressFinalize(this);
         }
 
-        public override void Setup(GameObject obj)
+        public bool UpdateBehaviour(GameObject obj, ICommand command, bool cancel = false)
+        {
+            BuildCommand buildCommand = (BuildCommand) command;
+            if (isFirstUpdate){
+                constructor.ConnectConstructable(buildCommand.constructable);
+                isFirstUpdate = false;
+            }
+
+            if (buildCommand.constructable.ConstructorTryToBuild(constructor))
+                return true;
+            else
+            {
+                constructor.DisconectConstructable(buildCommand.constructable);
+                return false;
+            }
+        }
+
+        public void ForceCancel(GameObject obj, ICommand command)
+        {
+            if (command is BuildCommand && obj == gameObject)
+            {
+                BuildCommand buildCommand = (BuildCommand) command;
+
+                buildCommand.constructable.ConstructorNotTryToBuild(constructor);
+                constructor.DisconectConstructable(buildCommand.constructable);
+            }
+        }
+
+        public void Setup(GameObject obj, ICommand command)
         {
             isFirstUpdate = true;
             if (obj.TryGetComponent<IConstructorHandler>(out constructor))
@@ -35,38 +58,6 @@ namespace Outlive.Unit.Behaviour
             else
             {
                 throw new System.Exception("O GameObject não possui um Component que herda de IConstructorHandler, tente adicionar o Script BasicConstructor");
-            }
-        }
-
-        public override bool UpdateBehaviour(GameObject obj, ICommand command)
-        {
-            if (command is BuildCommand && obj == gameObject)
-            {
-                BuildCommand buildCommand = (BuildCommand) command;
-                if (isFirstUpdate){
-                    constructor.ConnectConstructable(buildCommand.constructable);
-                    isFirstUpdate = false;
-                }
-
-                if (buildCommand.constructable.ConstructorTryToBuild(constructor))
-                    return true;
-                else
-                {
-                    constructor.DisconectConstructable(buildCommand.constructable);
-                    return false;
-                }
-                
-            }
-            return false;
-        }
-        public override void Cancel(GameObject obj, ICommand command)
-        {
-            if (command is BuildCommand && obj == gameObject)
-            {
-                BuildCommand buildCommand = (BuildCommand) command;
-
-                buildCommand.constructable.ConstructorNotTryToBuild(constructor);
-                constructor.DisconectConstructable(buildCommand.constructable);
             }
         }
     }

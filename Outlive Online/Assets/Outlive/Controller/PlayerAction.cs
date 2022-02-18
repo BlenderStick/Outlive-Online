@@ -19,13 +19,20 @@ namespace Outlive.Controller
     ///Component responsável pela leitura das entradas do jogador como o mouse e o teclado.
     ///</summary>
     [AddComponentMenu("Outlive/Player/EventListener")]
-    public class PlayerEventListener : MonoBehaviour
+    public class PlayerAction : MonoBehaviour
     {
 
         // [SerializeField] private GUIManager _guiManager;
         [SerializeField] private LayerMask _viewProjectLayer;
         [SerializeField] private UnityEvent<Rect> _onDragPerformed;
         [SerializeField] private UnityEvent _onDragEnd;
+        [SerializeField] private UnityEvent<CallbackContext> _onSelectionChange;
+
+
+        public UnityEvent<Rect> OnDragPerformed { get => _onDragPerformed;}
+        public UnityEvent OnDragEnd { get => _onDragEnd;}
+        public UnityEvent<CallbackContext> SelectionChange { get => _onSelectionChange;}
+
 
         private PlayerController _controller;
         private Vector3 _worldSelectBoxStarted;
@@ -33,15 +40,6 @@ namespace Outlive.Controller
         private GameObject _focus;
         private Camera _camera;
         private Rect _dragRect;
-
-
-        private void Awake() 
-        {
-        }
-
-        private void Start() 
-        {
-        }
 
         public void OnFocusChange(CallbackContextFocus ctx)
         {
@@ -60,7 +58,7 @@ namespace Outlive.Controller
                 }
             }
         }
-        public void OnSelect(CallbackContext ctx)
+        public void OnSelect(PlayerController.CallbackContext ctx)
         {
             if (ctx.isPressed)
             {
@@ -87,6 +85,13 @@ namespace Outlive.Controller
                         ctx.controller.Selection.Add(item);
                     }
                 }
+                if (ctx.focus == null)
+                {
+                    _onSelectionChange.Invoke(new CallbackContext(ctx.controller, ctx.controller.Selection));
+                    _onDragEnd.Invoke();
+                    return;
+                }
+                
                 if (count == 0)
                 {
                     if (ctx.isMultiselect)
@@ -102,12 +107,12 @@ namespace Outlive.Controller
                 else
                     ctx.controller.Selection.Add(ctx.focus);
                     
-
+                _onSelectionChange.Invoke(new CallbackContext(ctx.controller, ctx.controller.Selection));
 
                 _onDragEnd.Invoke();
             }
         }
-        public void OnCancelSelect(CallbackContext ctx)
+        public void OnCancelSelect(PlayerController.CallbackContext ctx)
         {
             _calculeSelectRect = false;
 
@@ -116,7 +121,7 @@ namespace Outlive.Controller
             
         }
         
-        public void OnInteract(CallbackContext ctx)
+        public void OnInteract(PlayerController.CallbackContext ctx)
         {
         }
 
@@ -170,6 +175,18 @@ namespace Outlive.Controller
                 else
                     selectable.UnitDeselect();
             }
+        }
+
+        public class CallbackContext
+        {
+            public CallbackContext(PlayerController controller, Selection selection)
+            {
+                this.controller = controller;
+                this.selection = selection;
+            }
+
+            public PlayerController controller {get; private set;}
+            public Selection selection {get; private set;}
         }
     }
 }

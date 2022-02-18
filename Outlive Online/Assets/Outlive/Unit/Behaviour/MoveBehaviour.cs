@@ -7,56 +7,52 @@ using UnityEngine.AI;
 
 namespace Outlive.Unit.Behaviour
 {
-    [CreateAssetMenu(fileName = "MoveBehaviour", menuName = "Behaviour/Move"), Serializable]
-    public class MoveBehaviour : BasicBehaviour
+    public class MoveBehaviour : IBehaviour
     {
 
         private GameObject gameObject;
         private NavMeshAgent navigation;
+        private Vector3 lastVector;
 
-        public override void Cancel(GameObject obj, ICommand command)
+        public void Dispose()
+        {
+            gameObject = null;
+            navigation = null;
+            GC.SuppressFinalize(this);
+        }
+
+        public void ForceCancel(GameObject obj, ICommand command)
         {
             navigation.isStopped = true;
         }
 
-        public override bool Condition(ICommand command)
-        {
-            return command is MoveCommand;
-        }
-
-        public override void Reset()
-        {
-            gameObject = null;
-            navigation = null;
-        }
-
-        public override void Setup(GameObject obj)
+        public void Setup(GameObject obj, ICommand command)
         {
             gameObject = obj;
             if (!obj.TryGetComponent<NavMeshAgent>(out navigation))
-                throw new System.Exception("O objeto não possui um NavMeshAgent Component");
+                throw new System.Exception("O objeto " + obj + " não possui um NavMeshAgent Component");
+            lastVector = obj.transform.position;
         }
 
-        public override bool UpdateBehaviour(GameObject obj, ICommand command)
+        public bool UpdateBehaviour(GameObject obj, ICommand command, bool cancel = false)
         {
-            if (obj == gameObject)
+            if (lastVector != (Vector3) command.alvo)
             {
-                Debug.Log(command.alvo);
-                if (!navigation.destination.Equals(command.alvo))
-                    navigation.destination = (Vector3) command.alvo;
-                
-                if (navigation.remainingDistance < 0.1f)
-                {
-                    navigation.isStopped = true;
-                    return false;
-                }
-                else
-                {
-                    navigation.isStopped = false;
-                    return true;
-                }
+                lastVector = (Vector3) command.alvo;
+                navigation.destination = lastVector;
+                return true;
             }
-            return false;
+            
+            if (navigation.remainingDistance < 0.1f)
+            {
+                navigation.isStopped = true;
+                return false;
+            }
+            else
+            {
+                navigation.isStopped = false;
+                return true;
+            }
         }
     }
 }

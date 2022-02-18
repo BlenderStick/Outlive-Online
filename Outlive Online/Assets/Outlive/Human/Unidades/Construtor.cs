@@ -30,7 +30,7 @@ public class Construtor : MonoBehaviour, IConstructorHandler, IGUIUnit, ISelecta
     public IPlayer player{get;}
     IPlayer ICommandableUnit.player {set => throw new System.NotImplementedException(); get => player;}
 
-    public IGUILoader guiLoader => throw new NotImplementedException();
+    string IGUIUnit.UnitName => Outlive.Units.HM_CONSTRUCTOR;
 
     public void ConnectConstructable(IConstructableHandler constructable)
     {

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Outlive.Manager.Generic;
 using UnityEditor;
@@ -7,6 +8,7 @@ using UnityEngine;
 namespace Outlive.Unit.Inspector
 {
     [CanEditMultipleObjects]
+    [ObsoleteAttribute]
     [CustomEditor(typeof(UnitStarter))]
     public class UnitStarterInspector : Editor
     {
@@ -47,9 +49,9 @@ namespace Outlive.Unit.Inspector
             else
             {
                 SerializedProperty playerRef = serializedObject.FindProperty("_playerReference");
-                Object playerRefValue = playerRef.objectReferenceValue;
+                UnityEngine.Object playerRefValue = playerRef.objectReferenceValue;
 
-                Object obj = EditorGUILayout.ObjectField(player, playerRef.objectReferenceValue, typeof(Object), true);
+                UnityEngine.Object obj = EditorGUILayout.ObjectField(player, playerRef.objectReferenceValue, typeof(UnityEngine.Object), true);
                 if (obj != playerRef.objectReferenceValue)
                 {
                     if (obj is IPlayer)
@@ -69,7 +71,7 @@ namespace Outlive.Unit.Inspector
             }
             EditorGUILayout.Separator();
 
-            Object manager = EditorGUILayout.ObjectField(gameManagerGUI, gameManager.objectReferenceValue, typeof(Object), true);
+            UnityEngine.Object manager = EditorGUILayout.ObjectField(gameManagerGUI, gameManager.objectReferenceValue, typeof(UnityEngine.Object), true);
 
             if (manager != gameManager.objectReferenceValue)
             {

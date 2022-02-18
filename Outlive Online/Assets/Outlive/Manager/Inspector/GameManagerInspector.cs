@@ -246,20 +246,6 @@ namespace Outlive.Manager.Editor
         //     // EditorGUILayout.EndVertical();
         // }
 
-        private void NotifyUnitStarter()
-        {
-            UnityEngine.Object[] objetos = FindObjectsOfType(typeof(GameObject));
-            foreach (var item in objetos)
-            {
-                GameObject obj = (GameObject) item;
-                UnitStarter unitStarter;
-                if (obj.TryGetComponent<UnitStarter>(out unitStarter))
-                {
-                    if ((System.Object) unitStarter.gameManager == target)
-                        unitStarter.SetPlayerWithGameManager(unitStarter.gameManager);
-                }
-            }
-        }
     }
 }
 

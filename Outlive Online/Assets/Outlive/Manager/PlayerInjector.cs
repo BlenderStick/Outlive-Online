@@ -16,10 +16,7 @@ namespace Outlive.Manager
 
         private void Awake() {
             if (Application.isPlaying)
-            {
-                NotifyGameManager();
                 return;
-            }
 
             if (_executeAfterPlay && _manager != null)
                 _manager.CheckPlayersChange(true);
@@ -87,6 +84,16 @@ namespace Outlive.Manager
             injectable.OnInjectablePlayerChange(_manager, player.displayName, player.displayName, player.color, player.color);
         }
 
+        public void UpdateManager(IPlayerInjectable injectable)
+        {
+            if (injectable == null || _manager == null)
+                return;
+
+            if (injectable is Object obj)
+                if (_objectsToInjectPlayer.Contains(obj))
+                    _manager.FirePlayerListChange();
+        }
+
         void UpdateManager()
         {
             if (_manager == null)
@@ -120,6 +127,7 @@ namespace Outlive.Manager
                 if (item is IPlayerInjectable injectable)
                     injectable.OnGameManagerStart(gameManager);
             }
+            NotifyGameManager();
         }
 
     }

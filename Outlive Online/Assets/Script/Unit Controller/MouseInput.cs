@@ -48,7 +48,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""id"": ""494f2e6e-040d-4b8d-bb84-553ce99cc861"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """"
+                    ""interactions"": ""Press""
                 },
                 {
                     ""name"": ""Multiselect"",
@@ -157,7 +157,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""id"": ""21303b18-83fb-4ff7-b1c7-3460988db355"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": ""Tap""
+                    ""interactions"": ""Press""
                 },
                 {
                     ""name"": ""CancelClick"",
@@ -181,7 +181,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""id"": ""4161f413-1b81-4579-b4d0-f16a199b6924"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """"
+                    ""interactions"": ""Press""
                 },
                 {
                     ""name"": ""KeyW"",

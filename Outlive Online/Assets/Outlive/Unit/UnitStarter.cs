@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Outlive.Manager.Generic;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.Events;
 
 namespace Outlive.Unit
 {
-    [AddComponentMenu("Outlive/Unit/Unit Starter")]
+    [AddComponentMenu("Outlive/Unit/Unit Starter"), ObsoleteAttribute]
     public class UnitStarter : MonoBehaviour
     {
 
@@ -24,10 +25,10 @@ namespace Outlive.Unit
         }
         #pragma warning disable 0649
         [SerializeField] private PlayerSelectionMode _mode;
-        [SerializeField] private Object _playerReference;
+        [SerializeField] private UnityEngine.Object _playerReference;
         [SerializeField] private int _playerIndex;
         [SerializeField] private UnityEvent<StarterEvent> _onPlayerLoad;
-        [SerializeField] private Object _gameManagerRef;
+        [SerializeField] private UnityEngine.Object _gameManagerRef;
         #pragma warning restore 0649
 
         // Start is called before the first frame update

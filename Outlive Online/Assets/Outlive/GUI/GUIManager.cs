@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Outlive.Controller;
+using Outlive.GUI.Generic;
+using Outlive.Unit.Generic;
 using UnityEngine;
 
 namespace Outlive.GUI
@@ -8,98 +11,67 @@ namespace Outlive.GUI
     public class GUIManager : MonoBehaviour
     {
 
-        public class Event : Generic.IGUILoaderEvent
+        public class CallbackContext
         {
-            private GUIManager _manager;
-            internal Event(GUIManager guiManager)
+            public CallbackContext(RectTransform root, GUIManager guiManager, Selection selection, PlayerController controller)
             {
-                _manager = guiManager;
+                this.root = root;
+                this.guiManager = guiManager;
+                this.selection = selection;
+                this.controller = controller;
             }
-            public RectTransform root => _manager._uiTransform;
 
-            public Generic.IGUILoader current {get => _manager.guiLoader; set => _manager.guiLoader = value;}
-
-            public GUIManager manager => _manager;
+            public RectTransform root {get; private set;}
+            public GUIManager guiManager {get; private set;}
+            public Selection selection {get; private set;}
+            public PlayerController controller {get; private set;}
         }
 
-        [SerializeField] private UnityEngine.Object _object_order;
         [SerializeField] private RectTransform _uiTransform;
+        private IGUILoader _currentGUI;
+        private PlayerController _currentPlayerController;
+        private Selection _currentSelection;
 
-        private IList<Generic.IGUILoader> _loaderList;
-        private Generic.IGUILoader _guiLoader;
-        private Event evt;
-        public Generic.IGUILoader guiLoader
+        public void OnSelectionChange(PlayerAction.CallbackContext ctx)
         {
-            get => _guiLoader;
-            set
+            if (ctx.selection.Count == 0)
             {
-                if (_guiLoader != null)
-                    _guiLoader.leave(evt);
-
-                _guiLoader = value;
-                
-                if (_guiLoader != null)
-                    _guiLoader.load(evt);
+                LeaveCurrent();
+                return;
             }
+
+            _currentPlayerController = ctx.controller;
+            _currentSelection = ctx.selection;
+
+            IGUIUnit guiUnit = null;
+
+            foreach (var item in _currentSelection.Selected)
+                if (item.TryGetComponent(out guiUnit))
+                    break;
+
+            if (guiUnit == null)
+                return;
+            Debug.Log(guiUnit.UnitName);
+
+            SetGUIPrefab(Outlive.GUILoad.GetGUI(guiUnit.UnitName), ctx.controller, ctx.selection);
         }
-        public Generic.IGUILoaderOrder guiLoaderOrder {get; set;}
 
-        public void SetGUILoaders(params Generic.IGUILoader[] loaders)
+        public void SetGUIPrefab(GameObject prefab, PlayerController controller, Selection selection)
         {
-            List<Generic.IGUILoader> tempLoaders = new List<Generic.IGUILoader>();
-            foreach (var item in loaders)
-            {
-                if (item == null || tempLoaders.Contains(item))
-                    continue;
-                tempLoaders.Add(item);
-            }
-            if (_loaderList != null)
-                System.GC.ReRegisterForFinalize(_loaderList);
-
-            if (guiLoaderOrder == null)
-                _loaderList = new List<Generic.IGUILoader>(tempLoaders);
-            else
-                _loaderList = new List<Generic.IGUILoader>(guiLoaderOrder.order(tempLoaders));
-
-            if (_loaderList.Contains(_guiLoader))
+            LeaveCurrent();
+            GameObject instance = Instantiate(prefab, _uiTransform);
+            _currentGUI = instance.GetComponent<IGUILoader>();
+            _currentGUI.Load(new CallbackContext(_uiTransform, this, selection, controller));
+        }
+        private void LeaveCurrent()
+        {
+            if (_currentGUI == null)
                 return;
 
-            if (_loaderList.Count > 0)
-                guiLoader = _loaderList[0];
-            else
-                guiLoader = null;
-
+            CallbackContext ctx = new CallbackContext(_uiTransform, this, _currentSelection, _currentPlayerController);
+            _currentGUI.Leave(ctx);
+            _currentGUI = null;
         }
-
-        public void NextLoader()
-        {
-            if (_loaderList == null)
-                return;
-                
-            int index = _loaderList.IndexOf(guiLoader);
-            if (index < _loaderList.Count)
-                guiLoader = _loaderList[index++];
-            else
-                guiLoader = _loaderList[0];
-        }
-
-        private void Awake() 
-        {
-            if (_object_order is Generic.IGUILoaderOrder iOrder)
-                guiLoaderOrder = iOrder;
-            evt = new Event(this);
-        }
-
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
+        
     }
 }

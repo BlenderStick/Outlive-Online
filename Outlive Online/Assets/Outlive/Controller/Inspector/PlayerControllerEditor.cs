@@ -19,6 +19,7 @@ namespace Outlive.Controller.Inspector
             {
                 serializedObject.FindProperty("_input"),
                 serializedObject.FindProperty("_mainCamera"),
+                serializedObject.FindProperty("_player"),
                 serializedObject.FindProperty("_layerSelectable"),
             };
             _events = new SerializedProperty[]

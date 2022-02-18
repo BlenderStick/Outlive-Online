@@ -7,7 +7,7 @@ using Outlive.GUI.Generic;
 namespace Outlive.GUI.Inspector
 {
     
-    [CustomEditor(typeof(GUIManager))]
+    // [CustomEditor(typeof(GUIManager))]
     public class GUIManagerInspector : Editor {
 
         static GUIContent orderGUI = new GUIContent("Order");
