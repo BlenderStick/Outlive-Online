@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Outlive.Grid;
+using Outlive.Grid.Render.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -118,5 +120,59 @@ namespace Outlive
             Obstaculo = Resources.Load<Tile>("Grid/Tile_3");
             Ocupavel = Resources.Load<Tile>("Grid/Tile_1");
         }
+    }
+
+    public static class GridOption
+    {
+        private class DefaultOption : ITileOption
+        {
+            public MapTileType GetTile(params string[] layers)
+            {
+                if (Array.Exists(layers, layer => layer == "obstacles"))
+                {
+                    return MapTileType.Obstacle;
+                }
+                if (Array.Exists(layers, layer => layer == "builds" || layer == "jazidas" || layer == "enemys"))
+                {
+                    return MapTileType.Blocked;
+                }
+
+                throw new ArgumentException($"Não há nenhuma layer em '{layers}'na lista de opções");
+            }
+
+            public bool HaveOption(string name)
+            {
+                return name == "builds" || name == "jazidas" || name == "enemys" || name == "obstacles";
+            }
+        }
+
+        private class JazidaOption : ITileOption
+        {
+            public MapTileType GetTile(params string[] layers)
+            {
+                if (Array.Exists(layers, layer => layer == "obstacles"))
+                {
+                    return MapTileType.Obstacle;
+                }
+                if (Array.Exists(layers, layer => layer == "builds" || layer == "enemys"))
+                {
+                    return MapTileType.Blocked;
+                }
+                if (Array.Exists(layers, layer => layer == "jazidas"))
+                {
+                    return MapTileType.Free;
+                }
+
+                throw new ArgumentException($"Não há nenhuma layer em '{layers}'na lista de opções");
+            }
+
+            public bool HaveOption(string name)
+            {
+                return name == "builds" || name == "jazidas" || name == "enemys" || name == "obstacles";
+            }
+        }
+
+        public static ITileOption DefaultTileOption => new DefaultOption();
+        public static ITileOption JazidaTileOption => new JazidaOption();
     }
 }

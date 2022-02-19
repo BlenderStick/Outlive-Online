@@ -9,35 +9,48 @@ namespace Outlive.Grid
     {
 
         [SerializeField] private Tilemap _tilemap;
-        [SerializeField] private Vector2Int _bounds;
 
-
-        public HashSet<Vector2Int> Ocupado { get; set; }
-        public HashSet<Vector2Int> Obstaculo { get; set; }
-        public HashSet<Vector2Int> Verde { get; set; }
-        public Vector2Int Bounds { get => _bounds; set => _bounds = value; }
-
-        public void Repaint()
+        public void Paint(Vector2Int point, MapTileType type)
         {
-            if (_tilemap == null)
-                return;
-
-            for (int x = 0; x < _bounds.x; x++)
-                for (int y = 0; y < _bounds.y; y++)
-                    _tilemap.SetTile(new Vector3Int(x, y, 0), Outlive.GridLoad.Vazio);
-
-            if (Ocupado != null)
-                foreach (var item in Ocupado)
-                    _tilemap.SetTile(new Vector3Int(item.x, item.y, 0), Outlive.GridLoad.Ocupado);
-
-            if (Obstaculo != null)
-                foreach (var item in Ocupado)
-                    _tilemap.SetTile(new Vector3Int(item.x, item.y, 0), Outlive.GridLoad.Obstaculo);
-
-            if (Verde != null)
-                foreach (var item in Ocupado)
-                    _tilemap.SetTile(new Vector3Int(item.x, item.y, 0), Outlive.GridLoad.Ocupavel);
-
+            _tilemap.SetTile(new Vector3Int(point.x, point.y, 0), GetTile(type));
         }
+
+        public void Fill(RectInt rect, MapTileType type)
+        {
+            foreach (var item in rect.allPositionsWithin)
+            {
+                _tilemap.SetTile(new Vector3Int(item.x, item.y, 0), GetTile(type));
+            }
+        }
+
+        public void Clear()
+        {
+            _tilemap.ClearAllTiles();
+        }
+
+        private static Tile GetTile(MapTileType type)
+        {
+            if (type == MapTileType.Obstacle)
+                return Outlive.GridLoad.Obstaculo;
+            if (type == MapTileType.Blocked)
+                return Outlive.GridLoad.Ocupado;
+            if (type == MapTileType.Free)
+                return Outlive.GridLoad.Ocupavel;
+
+            return Outlive.GridLoad.Vazio;
+        }
+    }
+
+    ///<summary>Representa as cores que os Tiles assumirão</summary>
+    public enum MapTileType
+    {
+        ///<summary>Tile branco</summary>
+        Void,
+        ///<summary>Tile amarelo</summary>
+        Obstacle,
+        ///<summary>Tile vermelho</summary>
+        Blocked,
+        ///<summary>Tile verde</summary>
+        Free
     }
 }

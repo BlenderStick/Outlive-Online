@@ -9,12 +9,14 @@ using Outlive.Controller.Generic;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
 using UnityEngine;
+using Outlive.Grid;
 
 namespace Outlive.Controller
 {
     public class PlayerCommander : MonoBehaviour
     {
         [SerializeField] private LayerMask _streetLayer;
+        [SerializeField] private GridMap _map;
         private IList<ICommandController> commandControllers = new List<ICommandController>();
 
 
@@ -54,7 +56,7 @@ namespace Outlive.Controller
                 return;
 
             Vector2Int target2d = new Vector2Int(Decimal.ToInt32(Decimal.Round(new Decimal(target.x))), Decimal.ToInt32(Decimal.Round(new Decimal(target.z))));
-            Vector2Int[] positions = OutliveUtilites.CalculatePointsAroundInGrid(target2d, selection.Count);
+            Vector2Int[] positions = OutliveUtilites.CalculatePointsAroundInGrid(target2d, selection.Count, _map.GetLayers("builds", "jazidas", "obstacles"));
 
             int ii = 0;
             foreach (var item in selection.Selected)

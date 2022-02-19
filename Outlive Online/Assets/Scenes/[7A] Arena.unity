@@ -1231,10 +1231,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _layers:
+  - obstacles
   - builds
   - jazidas
   - enemys
-  _size: {x: 50, y: 50}
+  _bounds:
+    x: -25
+    y: -25
+    width: 50
+    height: 50
+  _onTileChange:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1158358622}
+        m_TargetAssemblyTypeName: Outlive.Grid.GridTest, Assembly-CSharp
+        m_MethodName: OnTileChange
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1158358621
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1248,7 +1268,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tilemap: {fileID: 960552571}
-  _bounds: {x: 50, y: 50}
 --- !u!114 &1158358622
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1261,6 +1280,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c884ecce2937c942b767d47075daade, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  option:
+    _options:
+    - _layer: builds
+      _tile: 1
+    - _layer: jazidas
+      _tile: 2
+    - _layer: enemys
+      _tile: 2
   map: {fileID: 1158358620}
   render: {fileID: 1158358621}
 --- !u!1 &1206816732
@@ -3189,6 +3216,7 @@ MonoBehaviour:
   _streetLayer:
     serializedVersion: 2
     m_Bits: 256
+  _map: {fileID: 1158358620}
 --- !u!1 &2059027066
 GameObject:
   m_ObjectHideFlags: 0
