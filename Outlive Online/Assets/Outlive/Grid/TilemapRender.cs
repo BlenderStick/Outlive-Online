@@ -9,6 +9,13 @@ namespace Outlive.Grid
     {
 
         [SerializeField] private Tilemap _tilemap;
+        [SerializeField] private TilemapRenderer _tileRender;
+
+        public bool Visibility 
+        {
+            get => _tileRender.enabled;
+            set => _tileRender.enabled = value;
+        }
 
         public void Paint(Vector2Int point, MapTileType type)
         {

@@ -99,7 +99,7 @@ public class UnitBehaviour : MonoBehaviour, ICommandableUnit
 
     void putInteract()
     {
-        PutCommand(new MoveCommand(0, 0, 0), false);
+        // PutCommand(new MoveCommand(0, 0, 0), false);
     }
 
     protected virtual void ExecuteStandCommand()
@@ -133,7 +133,7 @@ public class UnitBehaviour : MonoBehaviour, ICommandableUnit
     }
 
     protected virtual void ExecuteAttackCommand(AttackCommand attackCommand){
-        ExecuteMoveCommand(new MoveCommand(attackCommand.getCoordinates()));
+        // ExecuteMoveCommand(new MoveCommand(attackCommand.getCoordinates()));
     }
 
     protected virtual void UpdateMoveCommand(){
@@ -209,6 +209,11 @@ public class UnitBehaviour : MonoBehaviour, ICommandableUnit
         {
             UpdateAttackCommand();
         }
+    }
+
+    public bool CanExecuteCommand(string commandName)
+    {
+        throw new System.NotImplementedException();
     }
 
     // public string GetGuiName { get guiName;}

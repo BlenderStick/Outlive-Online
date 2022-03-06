@@ -90,10 +90,13 @@ namespace Outlive.Controller
         }
         private Selection _selection;
         private IList<object> _inputDisableControl;
+        private bool _inputEnable = true;
         public void DisableInputs(object obj)
         {
+            if (_inputDisableControl.Contains(obj))
+                return;
             _inputDisableControl.Add(obj);
-            _input.enabled = false;
+            _inputEnable = false;
             _onEnableInputsChange.Invoke(false);
         }
 
@@ -103,9 +106,11 @@ namespace Outlive.Controller
                 _inputDisableControl.Remove(obj);
 
             if (_inputDisableControl.Count == 0)
-                _input.enabled = true;
+            {
+                _inputEnable = true;
+                _onEnableInputsChange.Invoke(_input.enabled);
+            }
 
-            _onEnableInputsChange.Invoke(_input.enabled);
         }
 
 
@@ -117,6 +122,7 @@ namespace Outlive.Controller
         public bool enableInputs => _enableInputs;
         public IPlayer player{get; set;}
         public Selection Selection => _selection;
+        public GameObject Focus => _currentFocused;
         public Camera Camera 
         {
             get => _mainCamera;
@@ -159,7 +165,7 @@ namespace Outlive.Controller
         {
             _selectPerform = context.performed;
 
-            if (!enableInputs || !context.performed)
+            if (!enableInputs || !context.performed ||!_inputEnable)
                 return;
 
             if (context.performed)
@@ -167,7 +173,7 @@ namespace Outlive.Controller
         }
         public void SelectUp(InputAction.CallbackContext context)
         {
-            if (!enableInputs || !context.performed || _selectCanceled)
+            if (!enableInputs || !context.performed || _selectCanceled || !_inputEnable)
                 return;
 
             if (context.performed)
@@ -177,14 +183,14 @@ namespace Outlive.Controller
         {
             _selectCanceled = context.performed;
 
-            if (!context.performed)
+            if (!context.performed || !_inputEnable)
                 return;
                 
             OnCancelSelect.Invoke(new CallbackContext(context.performed, MouseActionType.Undefined, _mousePosition, _isMultiselect, _currentFocused, this, player));
         }
         public void InteractClick(InputAction.CallbackContext context)
         {
-            if (!enableInputs || !context.performed || _selectPerform)
+            if (!enableInputs || !context.performed || _selectPerform || !_inputEnable)
                 return;
 
             OnInteract.Invoke(new CallbackContext(context.performed, MouseActionType.Action, _mousePosition, _isMultiselect, _currentFocused, this, player));
@@ -213,8 +219,13 @@ namespace Outlive.Controller
 
         ///<summary>Collider da unidade selecionada atualmente</summary>
         private GameObject _currentFocused;
+        public bool isMultselect => _isMultiselect;
+
         private void UpdateGameObjectFocus()
         {
+            if (!_enableInputs)
+                return;
+
             RaycastHit hits;
             if (Physics.Raycast(_mainCamera.ScreenPointToRay(_mousePosition), out hits, Mathf.Infinity, _layerSelectable))
             {

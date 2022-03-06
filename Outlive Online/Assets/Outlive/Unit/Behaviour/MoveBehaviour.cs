@@ -13,6 +13,7 @@ namespace Outlive.Unit.Behaviour
         private GameObject gameObject;
         private NavMeshAgent navigation;
         private Vector3 lastVector;
+        private bool isStart = true;
 
         public void Dispose()
         {
@@ -31,27 +32,30 @@ namespace Outlive.Unit.Behaviour
             gameObject = obj;
             if (!obj.TryGetComponent<NavMeshAgent>(out navigation))
                 throw new System.Exception("O objeto " + obj + " não possui um NavMeshAgent Component");
-            lastVector = obj.transform.position;
+            MoveCommand moveCommand = command as MoveCommand;
+            moveCommand.FireStart();
         }
 
         public bool UpdateBehaviour(GameObject obj, ICommand command, bool cancel = false)
         {
-            if (lastVector != (Vector3) command.alvo)
-            {
-                lastVector = (Vector3) command.alvo;
-                navigation.destination = lastVector;
-                return true;
-            }
-            
-            if (navigation.remainingDistance < 0.1f)
+            MoveCommand moveCommand = command as MoveCommand;
+            if (cancel)
             {
                 navigation.isStopped = true;
                 return false;
             }
-            else
+
+            switch (moveCommand.CheckStatus(navigation.nextPosition))
             {
-                navigation.isStopped = false;
-                return true;
+                case MoveStatus.TargetChanged:
+                    navigation.destination = moveCommand.Target;
+                    navigation.isStopped = false;
+                    return true;
+                case MoveStatus.Completed:
+                    navigation.isStopped = true;
+                    return false;
+                default:
+                    return true;
             }
         }
     }

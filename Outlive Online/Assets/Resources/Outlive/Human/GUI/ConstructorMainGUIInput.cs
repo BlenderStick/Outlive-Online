@@ -7,12 +7,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
-using Outlive.Human.Generic;
-using Outlive.Human.Construcoes;
 using Outlive.Controller;
 using Outlive.GUI.Generic;
 using Outlive.GUI;
 using System.Threading.Tasks;
+using Outlive.Human.Generic;
+using Outlive;
+using Outlive.Grid;
 
 public class ConstructorMainGUIInput : MonoBehaviour, IGUILoader
 {
@@ -25,6 +26,8 @@ public class ConstructorMainGUIInput : MonoBehaviour, IGUILoader
     private PlayerController _controller;
     private GUIManager manager;
     private Selection _selection;
+    private GridMap _map;
+    private PlayerCommander _playerCommander;
 
     public void ActionClick(InputAction.CallbackContext context)
     {
@@ -50,25 +53,15 @@ public class ConstructorMainGUIInput : MonoBehaviour, IGUILoader
             _controller.EnableInputs(this);
         }
         if (isRepair)
-        { 
-            RaycastHit hit;
-            // int layerMask = 1 << LayerMask.NameToLayer("Default");
-            if (Physics.Raycast(_controller.Camera.ScreenPointToRay(mousePosition), out hit))
+        {
+            if (_controller.Focus != null)
             {
-                Collider collider = hit.collider;
-                IUnitConstructable uConst;
-
-                if (collider.TryGetComponent(out uConst))
+                IConstructable constructable;
+                if (_controller.Focus.TryGetComponent(out constructable))
                 {
-                    foreach (GameObject item in _controller.Selection.Selected)
-                    {
-                        ICommandableUnit commandable;
-                        if (item.TryGetComponent(out commandable))
-                            commandable.PutCommand(new BuildCommand(uConst.constructable), false);
-                    }
+                    Repair(constructable, Vector2Int.FloorToInt(_controller.Focus.transform.position.To2D()));
                 }
             }
-
             isRepair = false;
             _controller.EnableInputs(this);
         }
@@ -115,8 +108,6 @@ public class ConstructorMainGUIInput : MonoBehaviour, IGUILoader
     {
         if (!context.performed)
             return;
-        // new SetGUI(player, "constructorBasic");
-        Debug.Log("BasicConstructions");
         manager.SetGUIPrefab(Outlive.GUILoad.Constructor_Basic, _controller, _selection);
     }
     public void ResourceConstructions(InputAction.CallbackContext context)
@@ -151,6 +142,45 @@ public class ConstructorMainGUIInput : MonoBehaviour, IGUILoader
         //     player.defaultInput.enabled = true;
     }
 
+    private void Repair(IConstructable constructable, Vector2Int center)
+    {
+        BuildCommandManager commandManager = new BuildCommandManager(
+            v => constructable.PositionsToBuild.Contains(Vector2Int.RoundToInt(v)), 
+            v => _map.Contains(Vector2Int.FloorToInt(v), "builds", "jazidas", "obstacles"));
+
+        commandManager.Project = v => OutliveUtilites.Project(100f, _mapLayer, v);
+        commandManager.Target = center;
+        
+        commandManager.OnProgress += (o, c) =>
+        {
+            if (constructable.AddBuildProgress(c.ConstructorPosition, c.Value))
+            {
+                if (!constructable.NeedBuild)
+                    commandManager.Cancel();
+            }
+        };
+
+        foreach (var item in _selection.Selected)
+        {
+            ICommand command;
+            ICommandableUnit commandable;
+            if (item.TryGetComponent(out commandable) && commandManager.CanUseCommand(commandable.CanExecuteCommand, out command))
+            {
+                commandable.PutCommand(command, _controller.isMultselect);
+                command.OnStart += (o, c) => 
+                {
+                    commandManager.EnterCommand(c);
+                    _playerCommander.RequestCalcule(commandManager);
+                };
+                command.OnSkip += (o, c) =>
+                {
+                    _playerCommander.RequestCalcule(commandManager);
+                };
+                
+            }
+        }
+    }
+
     private bool RayCastInMap(Vector2 position, out Vector3 coordenates)
     {
         RaycastHit hit;
@@ -169,9 +199,13 @@ public class ConstructorMainGUIInput : MonoBehaviour, IGUILoader
 
     void IGUILoader.Load(GUIManager.CallbackContext ctx)
     {
-        _controller = ctx.controller;
-        manager = ctx.guiManager;
-        _selection = ctx.selection;
+        _controller = ctx.Controller;
+        manager = ctx.GuiManager;
+        _selection = ctx.Selection;
+        _map = ctx.GridMap;
+        _playerCommander = ctx.PlayerCommander;
+        // ctx.Commander
+        // ctx.GridInteract.
     }
 
     void IGUILoader.Update(GUIManager.CallbackContext ctx)

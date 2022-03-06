@@ -20,27 +20,42 @@ namespace Outlive.Grid.Render
                 throw new ArgumentNullException();
             _options = options;
         }
+
+        public bool HaveAllOptions(IEnumerable<string> names)
+        {
+            foreach (var item in names)
+                if (!HaveOption(item))
+                    return false;
+            
+            return true;
+        }
         
         ///<summary>Verifica se possui essa propriedade configurada</summary>
         public bool HaveOption(string name)
         {
             if (_options == null)
                 return false;
+                
+            foreach (var item in _options)
+            {
+                if (item.LayerAfect == name)
+                    return true;
+            }
 
             return false;
         }
 
-        public MapTileType GetTile(params string[] layers)
+        public MapTileType GetTile(HashSet<string> layers, bool interacting = false)
         {
             if (_options != null)
                 foreach (var item in _options)
                     foreach (var name in layers)
                         if (item.LayerAfect == name)
                             return item.Tile;
-            if (layers.Length == 0)
-                throw new ArgumentException("Não é permitido uma lista vazia");
+                            
             throw new ArgumentException($"Não existe um TileOption.Option que atenda à layer '{layers}'.");
         }
+
         [Serializable]
         public class Option
         {

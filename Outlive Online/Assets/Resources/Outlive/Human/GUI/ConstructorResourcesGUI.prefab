@@ -89,7 +89,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb8951934697ee6489849a3b8366b066, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _constructorMain: {fileID: 11400000, guid: cb6fb4d030699f34eb57123208831b29, type: 2}
 --- !u!114 &-163568134216519657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,27 +117,27 @@ MonoBehaviour:
   - m_PersistentCalls:
       m_Calls: []
     m_ActionId: 67bcbef5-7780-4e2f-b698-a543b2d21bf9
-    m_ActionName: Mouse/SelectClick[/Mouse/leftButton]
+    m_ActionName: Mouse/SelectDown[/Mouse/leftButton]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 8cdddefd-26e5-4519-9b1a-52ad5a2600d6
+    m_ActionName: Mouse/SelectUp[/Mouse/leftButton]
   - m_PersistentCalls:
       m_Calls: []
     m_ActionId: 7798faf2-8bfe-40c0-b926-8c7f1d1cb8e1
     m_ActionName: Mouse/MousePosition[/Mouse/position]
   - m_PersistentCalls:
       m_Calls: []
-    m_ActionId: 00ae7c8f-70bc-46eb-9b4f-99fe35fad0f6
-    m_ActionName: Mouse/MouseDrag[/Mouse/leftButton]
-  - m_PersistentCalls:
-      m_Calls: []
     m_ActionId: 494f2e6e-040d-4b8d-bb84-553ce99cc861
     m_ActionName: Mouse/CommandClick[/Mouse/rightButton]
   - m_PersistentCalls:
       m_Calls: []
-    m_ActionId: 5987922f-3ca3-43b5-a39f-f2aa84107c2e
-    m_ActionName: Mouse/KeyAttack[/Keyboard/a]
+    m_ActionId: a4b52898-88fe-461a-9008-94ee40cd4634
+    m_ActionName: Mouse/Multiselect[/Keyboard/shift]
   - m_PersistentCalls:
       m_Calls: []
-    m_ActionId: 6bada699-0389-4db9-81c0-d0d0056235c7
-    m_ActionName: Mouse/KeyStop[/Keyboard/s]
+    m_ActionId: 1a36902b-3271-47c8-b8ea-e2b10d2f5214
+    m_ActionName: Mouse/CancelSelect[/Keyboard/escape,/Mouse/rightButton]
   - m_PersistentCalls:
       m_Calls: []
     m_ActionId: 21303b18-83fb-4ff7-b1c7-3460988db355
@@ -211,12 +210,8 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 47c5e9f1-b269-4b58-9a03-7c049657f71f
     m_ActionName: Shortcut/KeyV[/Keyboard/v]
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: a4b52898-88fe-461a-9008-94ee40cd4634
-    m_ActionName: Mouse/Multiselect[/Keyboard/shift]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: Shortcut
+  m_DefaultActionMap: 5102c3a5-b584-482b-b119-f2c665c9bb5f
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}

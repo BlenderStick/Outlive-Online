@@ -1,4 +1,4 @@
-// GENERATED AUTOMATICALLY FROM 'Assets/Script/Unit Controller/MouseInput.inputactions'
+// GENERATED AUTOMATICALLY FROM 'Assets/Inputs/MouseInput.inputactions'
 
 using System;
 using System.Collections;
@@ -158,6 +158,14 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""ActionRelease"",
+                    ""type"": ""Button"",
+                    ""id"": ""2206f709-6ead-48b8-8e3c-9602ff4027e0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press(behavior=1)""
                 },
                 {
                     ""name"": ""CancelClick"",
@@ -437,6 +445,17 @@ public class @MouseInput : IInputActionCollection, IDisposable
                     ""action"": ""KeyV"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8a9ecc9c-3f84-48a1-bb4c-7859f6f93dff"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ActionRelease"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -454,6 +473,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
         // Shortcut
         m_Shortcut = asset.FindActionMap("Shortcut", throwIfNotFound: true);
         m_Shortcut_ActionClick = m_Shortcut.FindAction("ActionClick", throwIfNotFound: true);
+        m_Shortcut_ActionRelease = m_Shortcut.FindAction("ActionRelease", throwIfNotFound: true);
         m_Shortcut_CancelClick = m_Shortcut.FindAction("CancelClick", throwIfNotFound: true);
         m_Shortcut_MousePosition = m_Shortcut.FindAction("MousePosition", throwIfNotFound: true);
         m_Shortcut_KeyQ = m_Shortcut.FindAction("KeyQ", throwIfNotFound: true);
@@ -591,6 +611,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
     private readonly InputActionMap m_Shortcut;
     private IShortcutActions m_ShortcutActionsCallbackInterface;
     private readonly InputAction m_Shortcut_ActionClick;
+    private readonly InputAction m_Shortcut_ActionRelease;
     private readonly InputAction m_Shortcut_CancelClick;
     private readonly InputAction m_Shortcut_MousePosition;
     private readonly InputAction m_Shortcut_KeyQ;
@@ -610,6 +631,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
         private @MouseInput m_Wrapper;
         public ShortcutActions(@MouseInput wrapper) { m_Wrapper = wrapper; }
         public InputAction @ActionClick => m_Wrapper.m_Shortcut_ActionClick;
+        public InputAction @ActionRelease => m_Wrapper.m_Shortcut_ActionRelease;
         public InputAction @CancelClick => m_Wrapper.m_Shortcut_CancelClick;
         public InputAction @MousePosition => m_Wrapper.m_Shortcut_MousePosition;
         public InputAction @KeyQ => m_Wrapper.m_Shortcut_KeyQ;
@@ -636,6 +658,9 @@ public class @MouseInput : IInputActionCollection, IDisposable
                 @ActionClick.started -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnActionClick;
                 @ActionClick.performed -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnActionClick;
                 @ActionClick.canceled -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnActionClick;
+                @ActionRelease.started -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnActionRelease;
+                @ActionRelease.performed -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnActionRelease;
+                @ActionRelease.canceled -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnActionRelease;
                 @CancelClick.started -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnCancelClick;
                 @CancelClick.performed -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnCancelClick;
                 @CancelClick.canceled -= m_Wrapper.m_ShortcutActionsCallbackInterface.OnCancelClick;
@@ -685,6 +710,9 @@ public class @MouseInput : IInputActionCollection, IDisposable
                 @ActionClick.started += instance.OnActionClick;
                 @ActionClick.performed += instance.OnActionClick;
                 @ActionClick.canceled += instance.OnActionClick;
+                @ActionRelease.started += instance.OnActionRelease;
+                @ActionRelease.performed += instance.OnActionRelease;
+                @ActionRelease.canceled += instance.OnActionRelease;
                 @CancelClick.started += instance.OnCancelClick;
                 @CancelClick.performed += instance.OnCancelClick;
                 @CancelClick.canceled += instance.OnCancelClick;
@@ -743,6 +771,7 @@ public class @MouseInput : IInputActionCollection, IDisposable
     public interface IShortcutActions
     {
         void OnActionClick(InputAction.CallbackContext context);
+        void OnActionRelease(InputAction.CallbackContext context);
         void OnCancelClick(InputAction.CallbackContext context);
         void OnMousePosition(InputAction.CallbackContext context);
         void OnKeyQ(InputAction.CallbackContext context);

@@ -9,8 +9,9 @@ namespace Outlive.Unit.Generic
     public interface ICommandableUnit
     {
         void PutCommand(ICommand command, bool enfilerate);
-        void PutInteract(GameObject target, bool enfilerate);
         void UpdateCommand();
+
+        bool CanExecuteCommand(string commandName);
 
         IPlayer player{get; set;}
     }

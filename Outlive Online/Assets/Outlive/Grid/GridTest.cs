@@ -8,30 +8,50 @@ namespace Outlive.Grid
 {
     public class GridTest : MonoBehaviour
     {
-        [SerializeField] private TileOption option;
         public GridMap map;
-        public TilemapRender render;
 
         // Start is called before the first frame update
         void Start()
         {
-            render.Fill(map.Bounds, MapTileType.Void);
+            Vector2Int[] jazidas = new Vector2Int[]
+            {
+            new Vector2Int(0, 5),
+            new Vector2Int(-5, 5),
+            new Vector2Int(3, 2)
+            };
+            foreach (var item in Outlive.OutliveUtilites.CalculePointsAroundGrid(new Vector2Int(3, 4), 5, null))
+            {
+                map.Add(item, "jazidas");
+            }
+            foreach (var item in new RectInt(-2, 0, 5, 3).allPositionsWithin)
+            {
+                map.Add(item + jazidas[1], "obstacles");
+            }
+            // list.
         }
 
-        public void OnTileChange(GridMap.CallbackContext ctx)
+        private void PutCoords(string layer, Vector2Int offset, IEnumerable<Vector2Int> points)
         {
-            List<string> layers = new List<string>(3);
-            foreach (var item in ctx.GridMap.LayersThatHave(ctx.Point))
-                layers.Add(item);
-            if (layers.Count > 0)
-                render.Paint(ctx.Point, option.GetTile(layers.ToArray()));
-            else
-                render.Paint(ctx.Point, MapTileType.Void);
+            foreach (var item in points)
+                map.Add(item + offset, layer);
+            
         }
 
         // Update is called once per frame
         void Update()
         {
         }
+
+        private HashSet<Vector2Int> jazidaPoints = 
+            new HashSet<Vector2Int>(
+                new Vector2Int[]
+                {
+                    new Vector2Int(-1, 0),
+                    new Vector2Int(+1, 0),
+                    new Vector2Int(0, 0),
+                    new Vector2Int(0, -1),
+                    new Vector2Int(0, +1),
+                }
+                );
     }
 }

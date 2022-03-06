@@ -24,9 +24,9 @@ public class ConstructorResourcesGUIInput : MonoBehaviour, IGUILoader
 
     void IGUILoader.Load(GUIManager.CallbackContext ctx)
     {
-        _guiManager = ctx.guiManager;
-        _controller = ctx.controller;
-        _selection = ctx.selection;
+        _guiManager = ctx.GuiManager;
+        _controller = ctx.Controller;
+        _selection = ctx.Selection;
     }
 
     void IGUILoader.Update(GUIManager.CallbackContext ctx)

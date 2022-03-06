@@ -26,10 +26,11 @@ namespace Outlive.Unit
 #pragma warning restore 0649
         private IPlayer _playerProperty;
 
-        private IList<ICommand> _commands;
+        private List<ICommand> _commands;
         private object _commandLock;
         private ICommand _currentCommand;
         private IBehaviour _currentBehaviour;
+        private bool _cancelCommand;
 
         public IPlayer player 
         {
@@ -44,67 +45,31 @@ namespace Outlive.Unit
             }
         }
 
+        protected IBehaviour Behaviour => _currentBehaviour;
+
         public abstract string UnitName { get; }
 
         public virtual void PutCommand(ICommand command, bool enfilerate)
         {
-            if (command == null)
-                return;
-
-            // lock (_commandLock)
-            // {
-                if (_currentBehaviour != null)
+            lock (_commandLock)
+            {
+                if (!enfilerate)
                 {
-                    _currentBehaviour.ForceCancel(gameObject, _currentCommand);
+                    if (_currentBehaviour != null)
+                        _cancelCommand = true;
+                    foreach (var item in _commands)
+                        item.Skip();
+                    _commands.Clear();
                 }
 
-                _currentCommand = command;
-                
-                if (TryCreateBehaviour(command, out _currentBehaviour))
-                    _currentBehaviour.Setup(gameObject, command);
-
-            // }
+                _commands.Add(command);
+            }
             
         }
 
-        public virtual void PutInteract(GameObject target, bool enfilerate)
-        {
-            lock (_commandLock)
-            {
-                // ICommand command;
-
-                // foreach (IUnitInteract i in interacts)
-                // {
-                //     if (i.Interact(gameObject, target, out comm))
-                // }
-
-                if(_currentCommand == null)
-                {
-                    if (!TryFindInteract(target, out _currentCommand, out _currentBehaviour))
-                        Debug.Log("Não há uma interação adequada para que " + gameObject.name + " tenha um comportamento para " + target.name);
-                }
-                else
-                {
-                    if(enfilerate)
-                    {
-                        _commands.Add(new InteractCommand(target));
-                    }
-                    else
-                    {
-                        if(_currentBehaviour != null)
-                        {
-                            _currentBehaviour.ForceCancel(gameObject, _currentCommand);
-                            _currentBehaviour.Dispose();
-                        }
-                        
-                        if (!TryFindInteract(target, out _currentCommand, out _currentBehaviour))
-                            Debug.Log("Não há uma interação adequada para que " + gameObject.name + " tenha um comportamento para " + target.name);
-                    }
-                }
-            }
-        }
-
         protected abstract bool TryCreateBehaviour(ICommand command, out IBehaviour behaviour);
+        
+        public  abstract bool CanExecuteCommand(string commandName);
 
         private bool TryFindInteract(GameObject target, out ICommand command, out IBehaviour behaviour)
         {
@@ -173,20 +138,33 @@ namespace Outlive.Unit
 
         public void UpdateCommand()
         {
-            if (_currentBehaviour == null)
-                return;
 
             lock (_commandLock)
             {
-                bool condition = !_currentBehaviour.UpdateBehaviour(gameObject, _currentCommand);
-                if (condition)
+                if (_currentBehaviour == null || !_currentBehaviour.UpdateBehaviour(gameObject, _currentCommand, _cancelCommand))
                 {
-                    _currentBehaviour.Dispose();
-                    _currentBehaviour = null;
-                    _currentCommand = null;
+                    if (NextCommand())
+                        _cancelCommand = false;
                 }
                 // Debug.Log(condition);
             }
+        }
+
+        private bool NextCommand()
+        {
+            if (_commands.Count == 0)
+                return false;
+            
+            _currentCommand?.Skip();
+            _currentCommand = _commands[0];
+            _currentBehaviour?.Dispose();
+
+            _commands.RemoveAt(0);
+            if (TryCreateBehaviour(_currentCommand, out _currentBehaviour))
+                _currentBehaviour.Setup(gameObject, _currentCommand);
+            
+                
+            return true;
         }
 
         private void Awake()
@@ -271,6 +249,7 @@ namespace Outlive.Unit
             else
                 _onColorChange.Invoke(Color.white);
         }
+
 
         #endregion
     }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,32 +7,55 @@ namespace Outlive.Unit.Command
 {
     public class MoveCommand : ICommand
     {
+        private Vector3 _target;
+        private bool _changed;
 
-        Vector3 coordinates;
+        public event EventHandler<ICommand> OnStart;
+        public event EventHandler<ICommand> OnSkip;
 
+        public void FireStart() => OnStart?.Invoke(this, this);
 
-        public MoveCommand(float x, float y, float z) : this(new Vector3(x, y, z))
+        public bool CheckIsCompleted(Vector3 position)
         {
-
+            if ((position - Target).sqrMagnitude < 0.1f)
+                return true;
+            
+            return false;
         }
 
-        public MoveCommand(Vector3 coordinates)
+        public MoveStatus CheckStatus(Vector3 position)
         {
-            this.coordinates = coordinates;
-        }
-
-        public Vector3 getCoordinates()
-        {
-            return coordinates;
-        }
-
-        public object alvo
-        {
-            get
+            if ((position - Target).sqrMagnitude < 0.1f || IsDone)
+                return MoveStatus.Completed;
+            if (_changed)
             {
-                return coordinates;
+                _changed = false;
+                return MoveStatus.TargetChanged;
+            }
+
+            return MoveStatus.None;
+        }
+
+        public MoveCommand()
+        {
+        }
+
+        [Obsolete]
+        public Vector3 getCoordinates() => Target;
+
+        public Vector3 Target 
+        {
+            get => _target;
+            internal set
+            {
+                _target = value;
+                _changed = true;
             }
         }
+
+        public object alvo => Target;
+
+        public bool IsDone { get; private set; }
 
         ///<summary>
         ///Calcula uma série de pontos em volta de <paramref name="target"/> até um máximo de <paramref name="numberOfPoints"/>
@@ -114,6 +138,11 @@ namespace Outlive.Unit.Command
             return reorganizedVectors;
         }
 
+        internal void Done()
+        {
+            IsDone = true;
+        }
+
         private static Vector3 getMidPoint(Vector3[] vectors)
         {
             float x = 0f, y = 0f;
@@ -125,7 +154,7 @@ namespace Outlive.Unit.Command
             }
             x = x / vectors.Length;
             y = y / vectors.Length;
-            return new Vector3(x, y);
+            return new Vector3(x:x, z:y, y:0);
         }
 
         private static bool containVector(IList<Vector3Int> vectors, int vectorsCount, Vector3 compare)
@@ -237,6 +266,49 @@ namespace Outlive.Unit.Command
             return points(vectors, mask, maskLenght, target);
         }
 
+        public void Skip()
+        {
+            OnSkip?.Invoke(this, this);
+        }
+        bool disposed;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // called via myClass.Dispose(). 
+                    // OK to use any private object references
+                }
+                OnSkip = null;
+                OnStart = null;
+                // Release unmanaged resources.
+                // Set large fields to null.                
+                disposed = true;
+            }
+        }
 
+        public void Dispose() // Implement IDisposable
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void Start()
+        {
+            OnStart?.Invoke(this, this);
+        }
+
+        ~MoveCommand() // the finalizer
+        {
+            Dispose(false);
+        }
+    }
+
+    public enum MoveStatus
+    {
+        None,
+        TargetChanged,
+        Completed
     }
 }

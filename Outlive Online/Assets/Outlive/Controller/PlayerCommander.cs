@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Runtime.InteropServices;
+using System.ComponentModel;
 using System.Linq;
 using System;
 using System.Timers;
@@ -17,7 +18,31 @@ namespace Outlive.Controller
     {
         [SerializeField] private LayerMask _streetLayer;
         [SerializeField] private GridMap _map;
-        private IList<ICommandController> commandControllers = new List<ICommandController>();
+        private IList<ICommandManager> _commandManagers;
+
+        private void Awake() 
+        {
+            _commandManagers = new List<ICommandManager>();
+        }
+
+        public void RequestCalcule(ICommandManager commandManager)
+        {
+            if (!_commandManagers.Contains(commandManager))
+                _commandManagers.Add(commandManager);
+        }
+        public void CancelRequest(ICommandManager commandManager)
+        {
+            _commandManagers.Remove(commandManager);
+        }
+
+        private void Update() 
+        {
+            foreach (var item in _commandManagers)
+            {
+                item.Calcule();
+            }
+            _commandManagers.Clear();
+        }
 
 
         public void OnInteract(PlayerController.CallbackContext ctx)
@@ -27,7 +52,7 @@ namespace Outlive.Controller
                 RaycastHit hit;
                 if (Physics.Raycast(ctx.controller.Camera.ScreenPointToRay(ctx.mousePosition), out hit, Mathf.Infinity, _streetLayer))
                 {
-                    MoveCommand(ctx.controller.Selection, hit.point);
+                    MoveCommand(ctx.controller.Selection, hit.point, ctx.isMultiselect);
                 }
             }
         }
@@ -49,21 +74,44 @@ namespace Outlive.Controller
 
         }
 
-        public void MoveCommand(Selection selection, Vector3 target)
+        public void MoveCommand(Selection selection, Vector3 target, bool isSequence)
         {
 
             if (selection.Count == 0)
                 return;
 
             Vector2Int target2d = new Vector2Int(Decimal.ToInt32(Decimal.Round(new Decimal(target.x))), Decimal.ToInt32(Decimal.Round(new Decimal(target.z))));
-            Vector2Int[] positions = OutliveUtilites.CalculatePointsAroundInGrid(target2d, selection.Count, _map.GetLayers("builds", "jazidas", "obstacles"));
-
-            int ii = 0;
+            MoveCommandManager moveCommandManager = new MoveCommandManager(target2d, _map.GetLayers("builds", "jazidas", "obstacles").Contains, (v) => FromSkyToFloor(v, 100f));
+            
             foreach (var item in selection.Selected)
             {
-                // Vector3 experiment = new Vector3(positions[ii].x, 0, positions[ii++].y);
-                Vector3 experiment = FromSkyToFloor(positions[ii++], 100f);
-                item.GetComponent<ICommandableUnit>().PutCommand(new MoveCommand(experiment), false);
+                ICommandableUnit commandable = item.GetComponent<ICommandableUnit>();
+                if (commandable == null)
+                    continue;
+
+                int max = selection.Count;
+                MoveCommand command;
+                if (moveCommandManager.CanUseCommand(commandable.CanExecuteCommand, out command))
+                {
+                    command.OnStart += (o, c) =>
+                    {
+                        moveCommandManager.EnterCommand(command);
+                        RequestCalcule(moveCommandManager);
+                    };
+                    command.OnSkip += (o, c) =>
+                    {
+                        moveCommandManager.Count++;
+                        if (moveCommandManager.Count == max)
+                        {
+                            moveCommandManager.Dispose();
+                            CancelRequest(moveCommandManager);
+                        }
+                        else
+                            RequestCalcule(moveCommandManager);
+                    };
+
+                }
+                commandable.PutCommand(command, isSequence);
             }
         }
 

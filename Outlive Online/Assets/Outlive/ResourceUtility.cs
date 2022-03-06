@@ -8,6 +8,13 @@ using UnityEngine.Tilemaps;
 
 namespace Outlive
 {
+    public static class UnitCreation
+    {
+        public static bool CanCreate(Vector2Int position, HashSet<Vector2Int> voidPoints)
+        {
+            return true;
+        }
+    }
     public static class Units
     {
         public const string HM_CONSTRUCTOR = "hm_const";
@@ -17,6 +24,7 @@ namespace Outlive
     public static class Commands
     {
         public const string MOVE = "mv";
+        public const string BUILD = "bd";
     }
 
     public static class GUILoad
@@ -70,6 +78,7 @@ namespace Outlive
     {
         
         private static GameObject unit_constructor;
+        private static GameObject build_quartel;
 
         public static GameObject Constructor
         {
@@ -80,6 +89,15 @@ namespace Outlive
                 return unit_constructor;
             }
         }
+        public static GameObject Quartel
+        {
+            get
+            {
+                if (build_quartel == null)
+                    build_quartel = Resources.Load<GameObject>(ResourcePath.HM_FABRICA);
+                return build_quartel;
+            }
+        }
     }
 
     public static class ResourcePath
@@ -88,6 +106,7 @@ namespace Outlive
         
         #region Unit
             public const string HM_CONSTRUCTOR = HumanPath + "/Units/Constructor";
+            public const string HM_FABRICA = HumanPath + "/Builds/Fabrica";
         #endregion
         
 
@@ -96,7 +115,7 @@ namespace Outlive
             public const string HM_CONSTRUCTOR_GUI_BASIC = HumanPath + "/GUI/ConstructorBasicGUI";
             public const string HM_CONSTRUCTOR_GUI_RES = HumanPath + "/GUI/ConstructorResourcesGUI";
         #endregion
-        
+
     }
 
     public static class GridLoad
@@ -126,53 +145,91 @@ namespace Outlive
     {
         private class DefaultOption : ITileOption
         {
-            public MapTileType GetTile(params string[] layers)
-            {
-                if (Array.Exists(layers, layer => layer == "obstacles"))
-                {
-                    return MapTileType.Obstacle;
-                }
-                if (Array.Exists(layers, layer => layer == "builds" || layer == "jazidas" || layer == "enemys"))
-                {
-                    return MapTileType.Blocked;
-                }
 
-                throw new ArgumentException($"Não há nenhuma layer em '{layers}'na lista de opções");
+            public MapTileType GetTile(HashSet<string> layers, bool interacting = false)
+            {
+                if (layers == null || layers.Count == 0)
+                    return interacting? MapTileType.Free: MapTileType.Void;
+
+                
+                if (layers.Contains("obstacles") || layers.Contains("builds") || layers.Contains("jazidas") || layers.Contains("enemys"))
+                    return interacting? MapTileType.Blocked: MapTileType.Obstacle;
+                
+
+                throw new ArgumentException($"Não há nenhuma layer em '{layers}' que corresponda a um item da lista de opções");
+            }
+
+            public bool HaveAllOptions(IEnumerable<string> names)
+            {
+                foreach (var item in names)
+                    if (!HaveOption(item))
+                        return false;
+                
+                return true;
             }
 
             public bool HaveOption(string name)
             {
-                return name == "builds" || name == "jazidas" || name == "enemys" || name == "obstacles";
+                return name == "builds" || name == "jazidas" || name == "enemys" || name == "obstacles" || name == "" || name == null;
             }
         }
 
         private class JazidaOption : ITileOption
         {
-            public MapTileType GetTile(params string[] layers)
-            {
-                if (Array.Exists(layers, layer => layer == "obstacles"))
-                {
-                    return MapTileType.Obstacle;
-                }
-                if (Array.Exists(layers, layer => layer == "builds" || layer == "enemys"))
-                {
-                    return MapTileType.Blocked;
-                }
-                if (Array.Exists(layers, layer => layer == "jazidas"))
-                {
-                    return MapTileType.Free;
-                }
 
-                throw new ArgumentException($"Não há nenhuma layer em '{layers}'na lista de opções");
+            public MapTileType GetTile(HashSet<string> layers, bool interacting = false)
+            {
+                if (layers == null || layers.Count == 0)
+                    return interacting? MapTileType.Blocked: MapTileType.Void;
+
+                if (layers.Contains("jazidas"))
+                    return MapTileType.Free;
+
+                if (layers.Contains("obstacles"))
+                    return interacting? MapTileType.Blocked: MapTileType.Obstacle;
+
+                if (layers.Contains("builds") || layers.Contains("enemys"))
+                    return MapTileType.Blocked;
+
+
+
+                throw new ArgumentException($"Não há nenhuma layer em '{layers}' que corresponda a um item da lista de opções");
+            }
+
+            public bool HaveAllOptions(IEnumerable<string> names)
+            {
+                foreach (var item in names)
+                    if (!HaveOption(item))
+                        return false;
+                
+                return true;
             }
 
             public bool HaveOption(string name)
             {
-                return name == "builds" || name == "jazidas" || name == "enemys" || name == "obstacles";
+                return name == "builds" || name == "jazidas" || name == "enemys" || name == "obstacles" || name == "" || name == null;
             }
         }
 
-        public static ITileOption DefaultTileOption => new DefaultOption();
-        public static ITileOption JazidaTileOption => new JazidaOption();
+        private static ITileOption _defaultTileOption;
+        private static ITileOption _defaultJazidaTileOption;
+        public static ITileOption DefaultTileOption
+        {
+            get
+            {
+                if (_defaultTileOption == null)
+                    _defaultTileOption = new DefaultOption();
+                return _defaultTileOption;
+            }
+        }
+        public static ITileOption DefaultJazidaTileOption
+        {
+            get
+            {
+                if (_defaultJazidaTileOption == null)
+                    _defaultJazidaTileOption = new JazidaOption();
+                return _defaultJazidaTileOption;
+            }
+        }
     }
 }

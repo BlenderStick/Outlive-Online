@@ -1,16 +1,39 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Outlive.Grid;
 using UnityEngine;
 
 public class GridBlock : MonoBehaviour
 {
 
-    public Vector3Int[] blocks;
+
+    [SerializeField] private GridMap _gridManager;
+    [SerializeField] private int _radius;
+    [SerializeField] private string _gridLayer;
+
+    private HashSet<Vector2Int> _blocks;
+
+
+    public GridMap GridManager { get => _gridManager; set => _gridManager = value; }
+    public HashSet<Vector2Int> Blocks => _blocks;
+
+    private void Awake() 
+    {
+        _blocks = Outlive.OutliveUtilites.CalculePointsAroundGrid(Vector2Int.FloorToInt(Outlive.OutliveUtilites.From3DTo2DCoordinates(transform.position)), _radius);
+    }
+
     // Collider objCollider;
     // public GameObject reference;
     // Start is called before the first frame update
     void Start()
     {
+        if (_gridManager == null)
+            _gridManager = Object.FindObjectOfType<GridMap>();
+
+        foreach (var item in _blocks)
+        {
+            _gridManager.Add(item, _gridLayer);
+        }
         // objCollider = gameObject.GetComponent<Collider>();
 
     }
@@ -21,22 +44,14 @@ public class GridBlock : MonoBehaviour
 
     }
 
-    public Vector3Int[] getBlocks(){
-        Vector3Int[] b = new Vector3Int[blocks.Length];
-        Vector3 position = new Vector3(
-            x: transform.position.x + 0.5f,
-            y: transform.position.y,
-            z: transform.position.z + 0.5f);
-            
-        Vector3Int pos = Vector3Int.FloorToInt(position);
-        int count = 0;
-        foreach (Vector3Int v in blocks)
+    private void OnDestroy() 
+    {
+        foreach (var item in _blocks)
         {
-            b[count] = v + pos;
-            count++;
+            _gridManager.Remove(item, _gridLayer);
         }
-        return b;
     }
+
 
     #region Metodos de verificação de pontos
     public  bool IsInCollider(Collider other, Vector3 point) 

@@ -9,7 +9,6 @@ using UnityEngine.AI;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using Outlive;
-using Outlive.Human.Construcoes;
 using Outlive.Unit.Command;
 using Outlive.Unit.Generic;
 
@@ -259,14 +258,14 @@ public class Player : MonoBehaviour
                                 x: hit.point.x + 0.5f,
                                 y: hit.point.y,
                                 z: hit.point.z + 0.5f));
-                        GridManager gridManager = GetComponent<GridManager>();
-                        System.Collections.Generic.IReadOnlyCollection<Vector3Int> grids = gridManager.GetGridPoints();
+                        // GridManager gridManager = GetComponent<GridManager>();
+                        // System.Collections.Generic.IReadOnlyCollection<Vector3Int> grids = gridManager.GetGridPoints();
                         // Vector3Int[] targetVectors = MoveCommand.points(units, grids.ToArray(), grids.Count, target);
-                        Vector3[] targetVectors = OutliveUtilites.From2DTo3DCoordinates(OutliveUtilites.CalculatePointsAround(new Vector2(hit.point.x, hit.point.z), 0.5f, units.Count, gridManager.Get2DMask(), grids.Count, 0f));
+                        // Vector3[] targetVectors = OutliveUtilites.From2DTo3DCoordinates(OutliveUtilites.CalculatePointsAround(new Vector2(hit.point.x, hit.point.z), 0.5f, units.Count, gridManager.Get2DMask(), grids.Count, 0f));
                         int count = 0;
                         foreach(ICommandableUnit unit in units)
                         {
-                            unit.PutCommand(new MoveCommand(targetVectors[count]), false);
+                            // unit.PutCommand(new MoveCommand(targetVectors[count]), false);
                             count ++;
                         }
                     } 

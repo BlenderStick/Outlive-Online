@@ -8,7 +8,8 @@ namespace Outlive.Grid.Render.Generic
     {
         ///<summary>Verifica se possui essa propriedade configurada</summary>
         bool HaveOption(string name);
+        bool HaveAllOptions(IEnumerable<string> names);
         ///<summary>Pega o tile da camada mais importante para este TileOption</summary>
-        MapTileType GetTile(params string[] layers);
+        MapTileType GetTile(HashSet<string> layers, bool interacting = false);
     }
 }

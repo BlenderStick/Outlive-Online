@@ -151,6 +151,8 @@ namespace Outlive.Grid
             
             return false;
         }
+        ///<summary> Verifica se alguma layer contém o ponto </summary>
+        ///<returns> True se pelo menos uma layer contém o ponto </returns>
         public bool Contains(Vector2Int point, params string[] layers)
         {
             foreach (var item in layers)

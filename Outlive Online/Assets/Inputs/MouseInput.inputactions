@@ -147,6 +147,14 @@
                     "interactions": "Press"
                 },
                 {
+                    "name": "ActionRelease",
+                    "type": "Button",
+                    "id": "2206f709-6ead-48b8-8e3c-9602ff4027e0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=1)"
+                },
+                {
                     "name": "CancelClick",
                     "type": "Button",
                     "id": "1bca4965-284f-4cd2-b85d-a35d6addd781",
@@ -422,6 +430,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "KeyV",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8a9ecc9c-3f84-48a1-bb4c-7859f6f93dff",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActionRelease",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
