@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Outlive.Unit.Command
 {
-    class BuildCommandManager: ICommandManager
+    class BuildCommandTracker: ICommandTracker, IDisposable
     {
         private IList<BuildCommand> _buildCommands;
         private IList<MoveCommand> _onlyMove;
@@ -20,14 +20,14 @@ namespace Outlive.Unit.Command
 
         public class ProgressEventArgs: EventArgs
         {
-            public ProgressEventArgs(BuildCommandManager manager, Vector2 constructorPosition, int value)
+            public ProgressEventArgs(BuildCommandTracker manager, Vector2 constructorPosition, int value)
             {
                 Manager = manager;
                 ConstructorPosition = constructorPosition;
                 Value = value;
                 Use = true;
             }
-            public BuildCommandManager Manager {get; private set;}
+            public BuildCommandTracker Manager {get; private set;}
             public Vector2 ConstructorPosition {get; private set;}
             public int Value{get; private set;}
             ///<summary> Se estiver em false, o evento foi cancelado e o construtor terá que se reposicionar </summary>
@@ -40,35 +40,31 @@ namespace Outlive.Unit.Command
         public Func<Vector2Int, bool> MaskContains {get; private set;}
         public Func<Vector2Int, Vector3> Project {get; set;}
         public Vector2Int Target;
+        private HashSet<Vector2Int> _positions;
+        private int _maxComands;
+        private int _count;
 
 
-        public BuildCommandManager(Func<Vector2, bool> buildPositionsContains, Func<Vector2Int, bool> maskContain)
+        public BuildCommandTracker(Func<Vector2, bool> buildPositionsContains, int maxComands, Func<Vector2Int, bool> maskContain)
         {
             BuildPositionsContains = buildPositionsContains;
+            _maxComands = maxComands;
             MaskContains = maskContain;
             Project = v => new Vector3(v.x, 0, v.y);
             _buildCommands = new List<BuildCommand>();
             _onlyMove = new List<MoveCommand>();
         }
 
-        public void EnterCommand(ICommand command)
+        private void EnterCommand(ICommand command)
         {
-            if (command is MoveCommand moveCommand)
-            {
-                _onlyMove.Add(moveCommand);
-                command.OnSkip += (o, c) =>
-                {
-                    _onlyMove.Remove(moveCommand);
-                };
-            }
-            else if (command is BuildCommand buildCommand)
+            if (command is BuildCommand buildCommand)
             {
                 _buildCommands.Add(buildCommand);
-                command.OnSkip += (o, c) =>
-                {
-                    _buildCommands.Remove(buildCommand);
-                };
-                // buildCommand.
+            }
+            
+            else if (command is MoveCommand moveCommand)
+            {
+                _onlyMove.Add(moveCommand);
             }
         }
 
@@ -77,11 +73,15 @@ namespace Outlive.Unit.Command
             if (canExecuteCommand(BehaviourPreset.Behaviour_Build))
             {
                 command = new BuildCommand(AddProgress);
+                command.OnSkip += Skip;
+                command.OnStart += Start;
                 return true;
             }
             if (canExecuteCommand(BehaviourPreset.Behaviour_Move))
             {
                 command = new MoveCommand();
+                command.OnSkip += Skip;
+                command.OnStart += Start;
                 return true;
             }
             command = null;
@@ -103,14 +103,21 @@ namespace Outlive.Unit.Command
         }
         public void Calcule()
         {
-            HashSet<Vector2Int> positions = OutliveUtilites.CalculePointsAroundGrid(Target, _buildCommands.Count + _onlyMove.Count, MaskContains);
-            IEnumerator<Vector2Int> positionsEnumerator = positions.GetEnumerator();
+            _positions = OutliveUtilites.CalculePointsAroundGrid(Target, _maxComands, MaskContains);
+            SetCommands();
+            
+        }
+
+        private void SetCommands()
+        {
+            IEnumerator<Vector2Int> positionsEnumerator = _positions.GetEnumerator();
             IEnumerator<BuildCommand> buildEnumerator = _buildCommands.GetEnumerator();
             IEnumerator<MoveCommand> moveEnumerator = _onlyMove.GetEnumerator();
 
             while (positionsEnumerator.MoveNext() && buildEnumerator.MoveNext())
             {
                 buildEnumerator.Current.Target = Project(positionsEnumerator.Current);
+                buildEnumerator.Current.Angle = Quaternion.LookRotation(Project(Target) - buildEnumerator.Current.Target, Vector3.up);
             }
             while (positionsEnumerator.MoveNext() && moveEnumerator.MoveNext())
             {
@@ -120,7 +127,6 @@ namespace Outlive.Unit.Command
 
         private bool FireProgress(Vector2 position, int value)
         {
-            Debug.Log("Fire " + position);
             if (!BuildPositionsContains.Invoke(position))
                 return false;
                 
@@ -164,10 +170,57 @@ namespace Outlive.Unit.Command
 
         public bool AddProgress(Vector2 position, int value) => FireProgress(position, value);
 
-        public void Skip(object sender, ICommand command)
+        private void Skip(object sender, ICommand command)
         {
+            _count++;
+            if (command is MoveCommand moveCommand)
+                _onlyMove.Remove(moveCommand);
+            else if (command is BuildCommand buildCommand)
+                _buildCommands.Remove(buildCommand);
 
+            if (_count == _maxComands)
+                Dispose();
+            else
+                SetCommands();
         }
+
+        private void Start(object sender, ICommand command)
+        {
+            EnterCommand(command);
+            SetCommands();
+        }
+        bool disposed;
+        ~BuildCommandTracker()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    
+                }
+                _onlyMove.Clear();
+                _onlyMove = null;
+                _buildCommands.Clear();
+                _buildCommands = null;
+                BuildPositionsContains = null;
+                Project = null;
+                MaskContains = null;
+                disposed = true;
+            }
+        }
+
+
 
     }
 }

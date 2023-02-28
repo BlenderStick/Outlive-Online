@@ -6,7 +6,7 @@ using UnityEngine.AI;
 
 namespace Outlive.Unit.Behaviour
 {
-    public class BuildBehaviour : IBehaviour
+    public class BuildBehaviour : IMoveBehaviour
     {
 
         private NavMeshAgent agent;
@@ -17,7 +17,7 @@ namespace Outlive.Unit.Behaviour
         private bool _isStarted;
         private bool _isStoped;
         private bool _isBuildPause = false;
-        private MoveBehaviour _moveBehaviour;
+        private IMoveBehaviour _moveBehaviour;
         private MoveCommand _moveCommand;
         private ToBuild _toBuild;
 
@@ -27,6 +27,7 @@ namespace Outlive.Unit.Behaviour
         public float StartBuildTime {get; set;}
         ///<summary>Tempo em segundos</summary>
         public float StopBuildTime {get; set;}
+        public bool IsMoving => _moveBehaviour.IsMoving;
         public bool IsBuildPause
         {
             get => _isBuildPause;
@@ -47,8 +48,8 @@ namespace Outlive.Unit.Behaviour
         }
         public int ProgressValue {get; set;}
 
-        public event BuildEvent OnStateChange;
-        public delegate void BuildEvent (CallbackContext ctx);
+        public event Action<IMoveBehaviour, MoveBehaviourState> OnMoveStateChange;
+        public event Action<CallbackContext> OnStateChange;
 
         public class CallbackContext
         {
@@ -62,12 +63,13 @@ namespace Outlive.Unit.Behaviour
             public BuildBehaviourState State {get; private set;}
         }
 
-        public BuildBehaviour()
+        public BuildBehaviour(IMoveBehaviour moveBehaviour)
         {
             BuildTimeStep = 1f;
             StartBuildTime = 1f;
             StopBuildTime = 1f;
             ProgressValue = 1;
+            _moveBehaviour = moveBehaviour;
         }
 
         public void Dispose()
@@ -85,7 +87,6 @@ namespace Outlive.Unit.Behaviour
             if (!obj.TryGetComponent(out agent))
                 throw new MissingComponentException("NavMeshAgent necessario");
 
-            _moveBehaviour = new MoveBehaviour();
             _moveCommand = new MoveCommand();
             _toBuild = new ToBuild(StartBuildTime, BuildTimeStep, StopBuildTime);
 
@@ -97,8 +98,21 @@ namespace Outlive.Unit.Behaviour
                 if (!((BuildCommand) command).AddProgress(agent.nextPosition, 1))
                     _targetChanged = true;
             };
+
+            _moveBehaviour.OnMoveStateChange += AvoidaceChange;
+            
+
+            _toBuild.OnInitializeTick += range => OnInitializeTick(obj, ((BuildCommand) command).Angle, range);
+            _toBuild.OnFinalizeTick += OnFinalizeTick;
         }
 
+        private void AvoidaceChange(IMoveBehaviour mb, MoveBehaviourState s)
+        {
+            if (s == MoveBehaviourState.Moving)
+                    agent.avoidancePriority = 50;
+                else
+                    agent.avoidancePriority = 49;
+        }
         private bool _isMoveStart = true;
         private bool _building = false;
         private bool _moveCompleted = false;
@@ -107,27 +121,30 @@ namespace Outlive.Unit.Behaviour
         public bool UpdateBehaviour(GameObject obj, ICommand command, bool cancel = false)
         {
             BuildCommand buildCommand = command as BuildCommand;
-            BuildState state = buildCommand.CheckState(agent.nextPosition, _building);
+            BuildState buildState = buildCommand.CheckState(agent.nextPosition, _building);
+            MoveState moveState = buildCommand.CheckState(agent.nextPosition);
 
-            if (state == BuildState.Completed)   
+            if (buildState == BuildState.Completed)   
                 _completed = true;
 
-            if (state == BuildState.TargetChanged)
+            if (moveState == MoveState.TargetChanged)
             {
                 _moveCommand.Target = buildCommand.Target;
                 _targetChanged = true;
             }
-                
-            
-            if (!_building)
+                if (!_building)
             {
                 if (!_moveBehaviour.UpdateBehaviour(obj, _moveCommand, cancel || _completed))
                 {
+                    _moveBehaviour.OnMoveStateChange -= AvoidaceChange;
                     if (_completed || cancel)
+                    {
+                        agent.avoidancePriority = 50;
                         return false;
+                    }
 
                     _targetChanged = false;
-                    if (state == BuildState.CanBuild)
+                    if (buildState == BuildState.CanBuild)
                         _building = true;
                 }
             }
@@ -136,82 +153,43 @@ namespace Outlive.Unit.Behaviour
                 if (_toBuild.Tick(cancel || _targetChanged || _completed))
                 {
                     if (_completed || cancel)
+                    {
+                        agent.avoidancePriority = 50;
                         return false;
+                    }
                     
                     if (_targetChanged)
                         _building = false;
                 }
             }
-            return true;
 
-            // if (cancel)
-            //     _chegou = true;
+            if (_completed || cancel)
+                agent.avoidancePriority = 50;
             
-            // if (_isMoveStart)
-            // {
-            //     _isMoveStart = false;
-            //     buildCommand.FireStart();
-            // }
-                
-            // if (!_chegou)
-            // {
-            //     if (agent.destination != buildCommand.Target)
-            //     {
-            //         agent.destination = buildCommand.Target;
-            //         agent.isStopped = false;
-            //     }
-            //     _chegou = buildCommand.CheckChegou(obj.transform.position);
-            //     if (_chegou)
-            //     {
-            //         agent.avoidancePriority -= 1;
-            //         agent.isStopped = true;
-            //     }
-            //     return !_isStoped;
-            // }
-
-            // if (!buildCommand.Done && !cancel)
-            // {
-            //     if (_timeStartCount < StartBuildTime)
-            //         _timeStartCount += Time.deltaTime;
-            //     else
-            //     {
-            //         if (!_isStarted)
-            //         {
-            //             OnStateChange?.Invoke(new CallbackContext(this, BuildBehaviourState.Start)); ///Start event
-            //             _isStarted = true;
-            //         }
-            //         if (!IsBuildPause)
-            //         {
-            //             if (_timeStepCount < BuildTimeStep)
-            //             {
-            //                 _timeStepCount += Time.deltaTime;
-            //             }
-            //             else
-            //             {
-            //                 _timeStepCount = 0;
-            //                 buildCommand.AddProgress(obj.transform.position.To2D(), ProgressValue);
-            //             }
-            //         }
-            //     }
-            // }
-            // else
-            // {
-            //     if (_timeStopCount < StopBuildTime)
-            //     {
-            //         _timeStopCount += Time.deltaTime;
-            //     }
-            //     else
-            //     {
-            //         _isStoped = true;
-            //         OnStateChange?.Invoke(new CallbackContext(this, BuildBehaviourState.Stop)); ////Event stop
-            //         agent.avoidancePriority += 1;
-            //     }
-            // }
-
-
-            // return !_isStoped;
+            
+            
+            
+            return true;
         }
 
+        private Quaternion _startRotation;
+        private void OnInitializeTick(GameObject obj, Quaternion target, float range)
+        {
+            if (range == 0)
+            {
+                _startRotation = obj.transform.rotation;
+                OnStateChange?.Invoke(new CallbackContext(this, BuildBehaviourState.Start));
+                return;
+            }
+            // Debug.Log("Initialize range "+ target);
+            obj.transform.rotation = Quaternion.Lerp(_startRotation, target, range);
+        }
+
+        private void OnFinalizeTick(float range)
+        {
+            if (range == 0)
+                OnStateChange?.Invoke(new CallbackContext(this, BuildBehaviourState.Stop));
+        }
         private class ToBuild
         {
             private Contador _initialize;
@@ -220,6 +198,8 @@ namespace Outlive.Unit.Behaviour
             public bool ProgressPause {get; set;}
             private int state;
             public event Action OnProgress;
+            public event Action<float> OnInitializeTick;
+            public event Action<float> OnFinalizeTick;
 
             public ToBuild(float _initializeTime, float _progressTime, float _finalizeTime)
             {
@@ -235,6 +215,7 @@ namespace Outlive.Unit.Behaviour
                 switch (state)
                 {
                     case 0:
+                        OnInitializeTick?.Invoke(_initialize.Range);
                         if (_initialize.Tick())
                         {
                             _initialize.Reset();
@@ -269,6 +250,7 @@ namespace Outlive.Unit.Behaviour
                         }
                         break;
                     case 2:
+                        OnFinalizeTick?.Invoke(_finalize.Range);
                         if (_finalize.Tick())
                         {
                             _finalize.Reset();
@@ -285,6 +267,7 @@ namespace Outlive.Unit.Behaviour
             private float _current;
             private float _max;
             private bool _aways;
+            public float Range => _current / _max;
 
             public event Action<Contador> OnTick;
 

@@ -97,6 +97,10 @@ namespace Outlive.Controller
                 return;
             _inputDisableControl.Add(obj);
             _inputEnable = false;
+            _input.currentActionMap.FindAction("SelectDown").Disable();
+            _input.currentActionMap.FindAction("SelectUp").Disable();
+            _input.currentActionMap.FindAction("CommandClick").Disable();
+            _input.currentActionMap.FindAction("CancelSelect").Disable();
             _onEnableInputsChange.Invoke(false);
         }
 
@@ -108,6 +112,10 @@ namespace Outlive.Controller
             if (_inputDisableControl.Count == 0)
             {
                 _inputEnable = true;
+            _input.currentActionMap.FindAction("SelectDown").Enable();
+            _input.currentActionMap.FindAction("SelectUp").Enable();
+            _input.currentActionMap.FindAction("CommandClick").Enable();
+            _input.currentActionMap.FindAction("CancelSelect").Enable();
                 _onEnableInputsChange.Invoke(_input.enabled);
             }
 
@@ -116,10 +124,9 @@ namespace Outlive.Controller
 
         
         private Vector2 _mousePosition;
-        private bool _enableInputs = true;
         private bool _isMultiselect;
 
-        public bool enableInputs => _enableInputs;
+        public bool InputEnable => _inputEnable;
         public IPlayer player{get; set;}
         public Selection Selection => _selection;
         public GameObject Focus => _currentFocused;
@@ -165,7 +172,7 @@ namespace Outlive.Controller
         {
             _selectPerform = context.performed;
 
-            if (!enableInputs || !context.performed ||!_inputEnable)
+            if (!InputEnable || !context.performed)
                 return;
 
             if (context.performed)
@@ -173,7 +180,7 @@ namespace Outlive.Controller
         }
         public void SelectUp(InputAction.CallbackContext context)
         {
-            if (!enableInputs || !context.performed || _selectCanceled || !_inputEnable)
+            if (!InputEnable || !context.performed || _selectCanceled)
                 return;
 
             if (context.performed)
@@ -183,14 +190,14 @@ namespace Outlive.Controller
         {
             _selectCanceled = context.performed;
 
-            if (!context.performed || !_inputEnable)
+            if (!context.performed || !InputEnable)
                 return;
                 
             OnCancelSelect.Invoke(new CallbackContext(context.performed, MouseActionType.Undefined, _mousePosition, _isMultiselect, _currentFocused, this, player));
         }
         public void InteractClick(InputAction.CallbackContext context)
         {
-            if (!enableInputs || !context.performed || _selectPerform || !_inputEnable)
+            if (!InputEnable || !context.performed || _selectPerform)
                 return;
 
             OnInteract.Invoke(new CallbackContext(context.performed, MouseActionType.Action, _mousePosition, _isMultiselect, _currentFocused, this, player));
@@ -223,8 +230,8 @@ namespace Outlive.Controller
 
         private void UpdateGameObjectFocus()
         {
-            if (!_enableInputs)
-                return;
+            // if (!InputEnable)
+            //     return;
 
             RaycastHit hits;
             if (Physics.Raycast(_mainCamera.ScreenPointToRay(_mousePosition), out hits, Mathf.Infinity, _layerSelectable))

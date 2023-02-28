@@ -373,6 +373,7 @@ namespace Outlive
             return result;
         }
 
+        ///<summary>Converte o Vector3 em Vector2, os eixos são trocadas em XZ para XY, perdendo o eixo Y no processo</summary>
         public static Vector2 To2D(this Vector3 vector) => new Vector2(vector.x, vector.z);
 
         public enum Conversion

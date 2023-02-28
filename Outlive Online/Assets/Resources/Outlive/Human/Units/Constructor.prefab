@@ -200,6 +200,7 @@ GameObject:
   - component: {fileID: 1804718940536906953}
   - component: {fileID: 1804718940536906952}
   - component: {fileID: 1804718940536906955}
+  - component: {fileID: 7501643599532459520}
   m_Layer: 9
   m_Name: Constructor
   m_TagString: Untagged
@@ -344,6 +345,36 @@ MonoBehaviour:
   _normal: {r: 0, g: 0, b: 0, a: 0}
   _selected: {r: 1, g: 1, b: 1, a: 0}
   _hover: {r: 0.3207547, g: 0.3207547, b: 0.3207547, a: 0}
+  OnMove:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7501643599532459520}
+        m_TargetAssemblyTypeName: Outlive.Animator.UnitMoveAnimator, Assembly-CSharp
+        m_MethodName: OnMoveState
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnBuild:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7501643599532459520}
+        m_TargetAssemblyTypeName: Outlive.Animator.UnitMoveAnimator, Assembly-CSharp
+        m_MethodName: OnBuildState
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1804718940536906955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -359,6 +390,19 @@ MonoBehaviour:
   _skin: {fileID: 6655459677702185016}
   _materialIndex: 1
   _undefinedColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &7501643599532459520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1570295573964992513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbfd58fd13a5ae549ac465c289b6a9c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _animator: {fileID: 1804718940536906954}
 --- !u!1 &1705424716589520260
 GameObject:
   m_ObjectHideFlags: 0

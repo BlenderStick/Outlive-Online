@@ -7,12 +7,14 @@ using UnityEngine.AI;
 
 namespace Outlive.Unit.Behaviour
 {
-    public class MoveBehaviour : IBehaviour
+    public class MoveBehaviour : IMoveBehaviour
     {
 
         private GameObject gameObject;
         private NavMeshAgent navigation;
         private Vector3 lastVector;
+        public event Action<IMoveBehaviour, MoveBehaviourState> OnMoveStateChange;
+        public bool IsMoving {get; private set;}
         private bool isStart = true;
 
         public void Dispose()
@@ -36,23 +38,34 @@ namespace Outlive.Unit.Behaviour
             moveCommand.FireStart();
         }
 
+        private bool _completedCalled;
         public bool UpdateBehaviour(GameObject obj, ICommand command, bool cancel = false)
         {
             MoveCommand moveCommand = command as MoveCommand;
             if (cancel)
             {
                 navigation.isStopped = true;
+                OnMoveStateChange?.Invoke(this, MoveBehaviourState.Stoped);
                 return false;
             }
 
-            switch (moveCommand.CheckStatus(navigation.nextPosition))
+            switch (moveCommand.CheckState(navigation.nextPosition))
             {
-                case MoveStatus.TargetChanged:
+                case MoveState.TargetChanged:
                     navigation.destination = moveCommand.Target;
                     navigation.isStopped = false;
+                    _completedCalled = false;
+                    IsMoving = true;
+                    OnMoveStateChange?.Invoke(this, MoveBehaviourState.Moving);
                     return true;
-                case MoveStatus.Completed:
+                case MoveState.Completed:
                     navigation.isStopped = true;
+                    if (!_completedCalled)
+                    {
+                        IsMoving = false;
+                        OnMoveStateChange?.Invoke(this, MoveBehaviourState.Stoped);
+                        _completedCalled = true;
+                    }
                     return false;
                 default:
                     return true;

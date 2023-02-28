@@ -5,39 +5,27 @@ using UnityEngine;
 
 namespace Outlive.Unit.Command
 {
-    public class MoveCommand : ICommand
+    public class MoveCommand : IMoveCommand
     {
         private Vector3 _target;
-        private bool _changed;
+        protected bool _targetChanged;
 
         public event EventHandler<ICommand> OnStart;
         public event EventHandler<ICommand> OnSkip;
 
         public void FireStart() => OnStart?.Invoke(this, this);
 
-        public bool CheckIsCompleted(Vector3 position)
-        {
-            if ((position - Target).sqrMagnitude < 0.1f)
-                return true;
-            
-            return false;
-        }
-
-        public MoveStatus CheckStatus(Vector3 position)
+        public MoveState CheckState(Vector3 position)
         {
             if ((position - Target).sqrMagnitude < 0.1f || IsDone)
-                return MoveStatus.Completed;
-            if (_changed)
+                return MoveState.Completed;
+            if (_targetChanged)
             {
-                _changed = false;
-                return MoveStatus.TargetChanged;
+                _targetChanged = false;
+                return MoveState.TargetChanged;
             }
 
-            return MoveStatus.None;
-        }
-
-        public MoveCommand()
-        {
+            return MoveState.None;
         }
 
         [Obsolete]
@@ -49,7 +37,7 @@ namespace Outlive.Unit.Command
             internal set
             {
                 _target = value;
-                _changed = true;
+                _targetChanged = true;
             }
         }
 
@@ -303,12 +291,5 @@ namespace Outlive.Unit.Command
         {
             Dispose(false);
         }
-    }
-
-    public enum MoveStatus
-    {
-        None,
-        TargetChanged,
-        Completed
     }
 }

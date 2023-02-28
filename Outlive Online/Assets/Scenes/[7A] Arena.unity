@@ -2036,7 +2036,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7defb9bceefa284487c30575e536b24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxProgress: 100
+  _maxProgress: 10
   _currentProgress: 0
   _positionsToBuild:
   - {x: -1, y: -1}
@@ -2267,6 +2267,12 @@ MonoBehaviour:
   _normal: {r: 0, g: 0, b: 0, a: 0}
   _selected: {r: 1, g: 1, b: 1, a: 0}
   _hover: {r: 0.33962262, g: 0.33962262, b: 0.33962262, a: 0}
+  OnMove:
+    m_PersistentCalls:
+      m_Calls: []
+  OnBuild:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!65 &1725414709
 BoxCollider:
   m_ObjectHideFlags: 0

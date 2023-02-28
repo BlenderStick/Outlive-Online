@@ -1,6 +1,6 @@
 namespace Outlive.Unit.Command
 {
-    public interface ICommandManager 
+    public interface ICommandTracker
     {
         void Calcule();
     }

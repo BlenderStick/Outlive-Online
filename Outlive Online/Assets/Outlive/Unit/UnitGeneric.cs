@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Xml;
+using System.Collections;
 using System.Collections.Generic;
 using Outlive.Unit.Interacts;
 using Outlive.Unit.Command;
@@ -47,6 +48,9 @@ namespace Outlive.Unit
 
         protected IBehaviour Behaviour => _currentBehaviour;
 
+        ///<summary>True se o Behaviour atual for trocado no último frame</summary>
+        public bool BehaviourHasChanged {get; private set;}
+
         public abstract string UnitName { get; }
 
         public virtual void PutCommand(ICommand command, bool enfilerate)
@@ -67,7 +71,9 @@ namespace Outlive.Unit
             
         }
 
-        protected abstract bool TryCreateBehaviour(ICommand command, out IBehaviour behaviour);
+        protected abstract bool TryGetBehaviour(ICommand command, out IBehaviour behaviour);
+
+        protected abstract void OnBehaviourChange(IBehaviour lastBehaviour, IBehaviour currentBehaviour);
         
         public  abstract bool CanExecuteCommand(string commandName);
 
@@ -135,17 +141,48 @@ namespace Outlive.Unit
             }
         #endregion
         
+        public abstract void UpdateAnimator(bool isBehaviourChanged);
+
 
         public void UpdateCommand()
         {
 
             lock (_commandLock)
             {
-                if (_currentBehaviour == null || !_currentBehaviour.UpdateBehaviour(gameObject, _currentCommand, _cancelCommand))
+                BehaviourHasChanged = false;
+
+                try
                 {
-                    if (NextCommand())
-                        _cancelCommand = false;
+                    if(_currentBehaviour == null)
+                    {
+                        if (NextCommand())
+                        {
+                            _cancelCommand = false;
+                            BehaviourHasChanged = true;
+                        }
+                        else
+                            return;
+                    }
+                    
+                    while (_currentBehaviour != null && !_currentBehaviour.UpdateBehaviour(gameObject, _currentCommand, _cancelCommand))
+                    {
+
+                        if (NextCommand())
+                        {
+                            _cancelCommand = false;
+                            BehaviourHasChanged = true;
+                        }
+                    }
                 }
+                finally
+                {
+                    UpdateAnimator(BehaviourHasChanged);
+                }
+                
+
+                
+                
+                    
                 // Debug.Log(condition);
             }
         }
@@ -153,15 +190,32 @@ namespace Outlive.Unit
         private bool NextCommand()
         {
             if (_commands.Count == 0)
-                return false;
+            {
+                if (_currentBehaviour == null)
+                    return false;
+                
+                OnBehaviourChange(_currentBehaviour, null);
+                _currentBehaviour = null;
+                return true;
+            }
+                
+                
             
+                
+            
+
+            IBehaviour currentBehaviour;
+            if (TryGetBehaviour(_commands[0], out currentBehaviour))
+            {
+            }
+            OnBehaviourChange(_currentBehaviour, currentBehaviour);
+
             _currentCommand?.Skip();
             _currentCommand = _commands[0];
-            _currentBehaviour?.Dispose();
-
             _commands.RemoveAt(0);
-            if (TryCreateBehaviour(_currentCommand, out _currentBehaviour))
-                _currentBehaviour.Setup(gameObject, _currentCommand);
+            _currentBehaviour?.Dispose();
+            currentBehaviour?.Setup(gameObject, _currentCommand);
+            _currentBehaviour = currentBehaviour;
             
                 
             return true;
@@ -203,7 +257,8 @@ namespace Outlive.Unit
         // Update is called once per frame
         void Update()
         {
-            UpdateCommand();
+            if (Application.isPlaying)
+                UpdateCommand();
         }
 
         #region Injectable

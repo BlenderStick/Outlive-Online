@@ -61,7 +61,6 @@ namespace Outlive.GUI
 
             if (guiUnit == null)
                 return;
-            Debug.Log(guiUnit.UnitName);
 
             SetGUIPrefab(Outlive.GUILoad.GetGUI(guiUnit.UnitName), ctx.controller, ctx.selection);
         }

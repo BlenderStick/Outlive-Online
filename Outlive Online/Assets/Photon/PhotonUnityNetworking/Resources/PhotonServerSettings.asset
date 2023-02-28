@@ -36,6 +36,7 @@ MonoBehaviour:
   RpcList:
   - AtualizaLista
   - OnConnectedToMaster
+  - RPC_CreatePrefab
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

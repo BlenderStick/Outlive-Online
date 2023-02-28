@@ -8,17 +8,29 @@ using UnityEngine.Tilemaps;
 
 namespace Outlive
 {
-    public static class UnitCreation
+
+    //Class contains all default cost of prefabs
+    ///<summary>O custo para construção de cada prefab</summary>
+    internal class PrefabCost
     {
-        public static bool CanCreate(Vector2Int position, HashSet<Vector2Int> voidPoints)
+        ///<summary>O custo para construção de cada prefab</summary>
+        public static int GetCost(string prefabName)
         {
-            return true;
+            switch (prefabName)
+            {
+                case Outlive.PrefabsName.HM_CONSTRUCTOR:
+                    return 250;
+                case Outlive.PrefabsName.HM_FABRICA:
+                    return 500;
+                default:
+                    return 0;
+            }
         }
     }
-    public static class Units
+    public static class PrefabsName
     {
+        public const string HM_FABRICA = "hm_fabrica";
         public const string HM_CONSTRUCTOR = "hm_const";
-
     }
 
     public static class Commands
@@ -39,7 +51,7 @@ namespace Outlive
         private static void InstallGUIs()
         {
             _loader = new Dictionary<string, Func<GameObject>>();
-            _loader.Add(Units.HM_CONSTRUCTOR, () => Constructor_Main);
+            _loader.Add(PrefabsName.HM_CONSTRUCTOR, () => Constructor_Main);
         }
 
         public static GameObject GetGUI(string unitName) => _loader[unitName].Invoke();
@@ -74,37 +86,11 @@ namespace Outlive
 
     }
 
-    public static class UnitsLoad
-    {
-        
-        private static GameObject unit_constructor;
-        private static GameObject build_quartel;
-
-        public static GameObject Constructor
-        {
-            get
-            {
-                if (unit_constructor == null)
-                    unit_constructor = Resources.Load<GameObject>(ResourcePath.HM_CONSTRUCTOR);
-                return unit_constructor;
-            }
-        }
-        public static GameObject Quartel
-        {
-            get
-            {
-                if (build_quartel == null)
-                    build_quartel = Resources.Load<GameObject>(ResourcePath.HM_FABRICA);
-                return build_quartel;
-            }
-        }
-    }
-
     public static class ResourcePath
     {
         public const string HumanPath = "Outlive/Human";
         
-        #region Unit
+        #region Prefab Paths
             public const string HM_CONSTRUCTOR = HumanPath + "/Units/Constructor";
             public const string HM_FABRICA = HumanPath + "/Builds/Fabrica";
         #endregion
@@ -231,5 +217,77 @@ namespace Outlive
                 return _defaultJazidaTileOption;
             }
         }
+    }
+
+    //class named PrefabInfo contain points around world center, cost to initialize, type name, and prefab
+    public class PrefabInfo
+    {
+        public Vector2Int[] Points {get; private set;}
+        public int Cost {get; private set;}
+        public string Name {get; private set;}
+        public GameObject Prefab {get; private set;}
+        public PrefabInfo(Vector2Int[] points, int cost, string name, GameObject prefab)
+        {
+            Points = points;
+            Cost = cost;
+            Name = name;
+            Prefab = prefab;
+        }
+
+        public IEnumerable<Vector2Int> GetPoints(Vector2Int center)
+        {
+            foreach (var point in Points)
+                yield return point + center;
+        }
+    }
+
+    ///<summary>Carrega os prefabs e separa pelo nome</summary>
+    public class PrefabInfoLoader
+    {
+        private static Dictionary<string, PrefabInfo> _loader;
+        private static void InstallPrefabs()
+        {
+            _loader = new Dictionary<string, PrefabInfo>();
+
+            Vector2Int[] points = new Vector2Int[]{
+                new Vector2Int(0,0),
+                new Vector2Int(0,1),
+                new Vector2Int(0,-1),
+                new Vector2Int(1,0),
+                new Vector2Int(-1,0),
+            };
+
+            _loader.Add(PrefabsName.HM_CONSTRUCTOR, 
+                new PrefabInfo(
+                    new Vector2Int[]{new Vector2Int(0,0)}, 
+                    PrefabCost.GetCost(PrefabsName.HM_CONSTRUCTOR), 
+                    PrefabsName.HM_CONSTRUCTOR, 
+                    Resources.Load<GameObject>(ResourcePath.HM_FABRICA)));
+
+            _loader.Add(PrefabsName.HM_FABRICA, 
+                new PrefabInfo(
+                    points, 
+                    PrefabCost.GetCost(PrefabsName.HM_FABRICA), 
+                    PrefabsName.HM_FABRICA, 
+                    Resources.Load<GameObject>(ResourcePath.HM_FABRICA)));
+        }
+
+        ///<summary>Adiciona um novo prefab ao dicionário</summary>
+        public static void AddPrefab(string name, PrefabInfo prefabInfo)
+        {
+            if (_loader == null)
+                InstallPrefabs();
+            _loader.Add(name, prefabInfo);
+        }
+        ///<summary>Retorna o PrefabInfo de um prefab</summary>
+        public static PrefabInfo GetPrefab(string name)
+        {
+            if (_loader == null)
+                InstallPrefabs();
+            if (!_loader.ContainsKey(name))
+                throw new ArgumentException($"Não há nenhum prefab chamado '{name}' na lista de prefabs");
+            return _loader[name];
+        }
+
     }
 }
