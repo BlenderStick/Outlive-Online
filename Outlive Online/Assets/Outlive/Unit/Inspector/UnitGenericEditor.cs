@@ -6,6 +6,7 @@ namespace Outlive.Unit.Inspector
 {
     
     [CustomEditor(typeof(UnitGeneric), true)]
+    [CanEditMultipleObjects]
     public class UnitGenericEditor : Editor {
         public override void OnInspectorGUI() {
 
@@ -20,21 +21,28 @@ namespace Outlive.Unit.Inspector
                 if (count++ < 2)
                     continue;
 
-                if (baseData.name == "_player")
+                bool isPlayerOrInjector = baseData.name == "_player" || baseData.name == "_injector";
+
+                if (isPlayerOrInjector)
                     EditorGUI.BeginChangeCheck();
 
                 EditorGUILayout.PropertyField(baseData);
-                if (baseData.name == "_player")
+                
+                if (isPlayerOrInjector)
                     firePlayerChange = EditorGUI.EndChangeCheck();
                 
             }while(baseData.NextVisible(false));
-            
+
 
             serializedObject.ApplyModifiedProperties();
             
             if (firePlayerChange)
             {
-                (target as UnitGeneric).ForceInjectorUpdate();
+                (target as UnitGeneric).LoadPlayerName();
+                foreach (var item in targets)
+                {
+                    (item as UnitGeneric).ForceInjectorUpdate();
+                }
             }
         }
     }

@@ -299,10 +299,27 @@ namespace Outlive.Unit
 
         internal void ForceInjectorUpdate()
         {
+            if(_injector == null)
+            {
+                _player = new PlayerSelect();
+                _onColorChange.Invoke(Color.white);
+                return;
+            }
+                
             if (!_player.isPlayerUndefined)
                 _injector.UpdateInjectable(this, _player.PlayerName);
             else
                 _onColorChange.Invoke(Color.white);
+        }
+        /// <summary>
+        /// Força o carregamento da lista de nomes de jogadores criados no PlayerManager (Sim, essa é uma solução ruim e será refeita em breve)
+        /// </summary>
+        internal void LoadPlayerName()
+        {
+            if (_injector == null)
+                return;
+            
+            _injector.AddInjectable(_injector);
         }
 
 

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Xml;
+using System.Linq;
 using System.Collections.Generic;
 using Outlive.Manager.Generic;
 using UnityEngine;
@@ -22,6 +23,7 @@ namespace Outlive.Manager
                 _manager.CheckPlayersChange(true);
         }
 
+        ///<summary>Notifica o GameManager sobre todos os objetos criados em cena</summary>
         private void NotifyGameManager()
         {
             if (_manager == null)
@@ -42,15 +44,17 @@ namespace Outlive.Manager
                 }
             }
         }
-
+        
         public void AddInjectable(UnityEngine.Object target)
         {
-            if (!_objectsToInjectPlayer.Contains(target))
-                if (target is IPlayerInjectable injectable)
-                {
-                    _objectsToInjectPlayer.Add(target);
-                    injectable.OnInjectorSet(this);
-                }
+            if (_objectsToInjectPlayer.Contains(target))
+                return;
+                
+            if (target is IPlayerInjectable injectable)
+            {
+                _objectsToInjectPlayer.Add(target);
+                injectable.OnInjectorSet(this);
+            }
         }
         public void RemoveInjectable(UnityEngine.Object target)
         {
@@ -69,6 +73,11 @@ namespace Outlive.Manager
             }
 
             UpdateManager();
+        }
+
+        public void UpdateInjectables()
+        {
+            _manager.CheckListUpdate(true);
         }
 
         public void UpdateInjectable(IPlayerInjectable injectable, string playerName)

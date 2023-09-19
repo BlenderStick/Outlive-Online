@@ -333,12 +333,17 @@ MonoBehaviour:
   - _displayName: Jogador2
     _color: {r: 1, g: 0, b: 0, a: 0}
     _inspectorGameManager: {fileID: 134614229}
+  - _displayName: Jogador3
+    _color: {r: 0, g: 0.089500904, b: 1, a: 0}
+    _inspectorGameManager: {fileID: 134614229}
   _current_player_name_list:
   - Jogador1
   - Jogador2
+  - Jogador3
   _current_player_color_list:
   - {r: 0, g: 1, b: 0, a: 0}
   - {r: 1, g: 0, b: 0, a: 0}
+  - {r: 0, g: 0.089500904, b: 1, a: 0}
   _onPlayerChange:
     m_PersistentCalls:
       m_Calls:
@@ -1545,12 +1550,24 @@ PrefabInstance:
       value: Constructor (3)
       objectReference: {fileID: 0}
     - target: {fileID: 1804718940536906952, guid: 93ad7a72a568b1a4cb104ed5bf27fa3c, type: 3}
+      propertyPath: _player._playerList.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1804718940536906952, guid: 93ad7a72a568b1a4cb104ed5bf27fa3c, type: 3}
       propertyPath: _injector
       value: 
       objectReference: {fileID: 134614232}
     - target: {fileID: 1804718940536906952, guid: 93ad7a72a568b1a4cb104ed5bf27fa3c, type: 3}
       propertyPath: _player._playerIndex
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1804718940536906952, guid: 93ad7a72a568b1a4cb104ed5bf27fa3c, type: 3}
+      propertyPath: _player._playerList.Array.data[2]
+      value: Jogador3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1804718940536906952, guid: 93ad7a72a568b1a4cb104ed5bf27fa3c, type: 3}
+      propertyPath: _player._playerList.Array.data[3]
+      value: Jogador2
       objectReference: {fileID: 0}
     - target: {fileID: 2198072374157208251, guid: 93ad7a72a568b1a4cb104ed5bf27fa3c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2254,6 +2271,7 @@ MonoBehaviour:
     _playerList:
     - Undefined
     - Jogador1
+    - Jogador3
     - Jogador2
     _playerIndex: 1
   _injector: {fileID: 134614232}
@@ -2271,6 +2289,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnBuild:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMovingStop:
     m_PersistentCalls:
       m_Calls: []
 --- !u!65 &1725414709
@@ -3048,6 +3069,7 @@ MonoBehaviour:
     _playerList:
     - Undefined
     - Jogador1
+    - Jogador3
     - Jogador2
     _playerIndex: 1
   _layerSelectable:

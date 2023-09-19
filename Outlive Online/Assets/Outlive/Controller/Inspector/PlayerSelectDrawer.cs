@@ -13,14 +13,26 @@ namespace Outlive.Controller.Inspector
         {
             SerializedProperty list = property.FindPropertyRelative("_playerList");
             SerializedProperty index = property.FindPropertyRelative("_playerIndex");
+
+            if (list.hasMultipleDifferentValues)
+            {
+                EditorGUI.LabelField(position, "Player?");
+                EditorGUILayout.HelpBox("Os jogadores não estão corretamente configurados, procure o GameObject que possue o PlayerInjector component ou crie um GameObject e adicione o PlayerInjector component nele e clique em Find All", MessageType.Error);
+                return;
+            }
+
             string[] strList = new string[list.arraySize];
             for (int i = 0; i < strList.Length; i++)
             {
                 strList[i] = list.GetArrayElementAtIndex(i).stringValue;
             }
 
-            int newIndex = EditorGUI.Popup(position, "Player", index.intValue, strList);
-            if (newIndex != index.intValue)
+            int indexValue = index.intValue;
+            if(index.hasMultipleDifferentValues)
+                indexValue = 0;
+
+            int newIndex = EditorGUI.Popup(position, "Player", indexValue, strList);
+            if (newIndex != indexValue)
                 index.intValue = newIndex;
         }
     }
