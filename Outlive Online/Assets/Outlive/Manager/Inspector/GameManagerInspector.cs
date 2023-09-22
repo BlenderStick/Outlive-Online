@@ -8,6 +8,7 @@ using Photon.Pun;
 using Outlive.Manager.Generic;
 using Outlive.Unit;
 using UnityEngine.Events;
+using System.Security;
 
 namespace Outlive.Manager.Editor
 {
@@ -26,6 +27,7 @@ namespace Outlive.Manager.Editor
 
         private bool _events_foldout;
         private SerializedProperty[] _events;
+        private SerializedProperty playerIndefinido;
 
         public void OnEnable() {
             gameManager = (GameManager) this.target;
@@ -38,9 +40,10 @@ namespace Outlive.Manager.Editor
             else
                 players = serializedObject.FindProperty("_players");
 
+            playerIndefinido = serializedObject.FindProperty("_playerIndefinido");
+
             _events = new SerializedProperty[]
             {
-                serializedObject.FindProperty("_onPlayerChange"),
                 serializedObject.FindProperty("_onPlayerListChange"),
                 serializedObject.FindProperty("_onGameManagerStart"),
             };
@@ -62,6 +65,7 @@ namespace Outlive.Manager.Editor
 
             EditorGUILayout.PropertyField(mode, _guiManualOrRef);
             EditorGUILayout.PropertyField(players, _guiPlayers);
+            EditorGUILayout.PropertyField(playerIndefinido);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -89,163 +93,9 @@ namespace Outlive.Manager.Editor
 
             serializedObject.ApplyModifiedProperties();
             if (fireEvents)
-                gameManager.CheckUpdates();
+                gameManager.FirePlayerListChange();
             // if (GUI.Button(new Rect()))
         }
-
-        // public void GUIPlayerList(string pathList, bool reference, bool editable)
-        // {
-        //     GameManager gameManager = (GameManager) this.target;
-        //     GUILayoutOption[] options = { GUILayout.MinWidth(10.0f) };
-
-        //     SerializedProperty listProperty = this.serializedObject.FindProperty(pathList);
-            
-
-        //     if (listProperty == null)
-        //     {
-        //         Debug.Log("Nulo");
-        //         return;
-        //     }
-
-        //     float containerElementHeight = 22;
-        //     float containerHeight = listProperty.arraySize * containerElementHeight;
-
-
-
-        //     EditorGUI.BeginDisabledGroup(!editable);
-        //     Rect containerRect = Rect.zero;
-        //     // Rect controlRect = PhotonGUI.ContainerBody(containerHeight);
-
-        //     SerializedProperty isFoldout = this.serializedObject.FindProperty("isFoldout");
-        //     bool isOpen = EditorGUILayout.BeginFoldoutHeaderGroup(isFoldout.boolValue, "Jogadores", null, value => containerRect = value, null);
-
-        //     if (!isOpen)
-        //         containerHeight = 0;
-
-        //     isFoldout.boolValue = isOpen;
-        //     serializedObject.ApplyModifiedProperties();
-
-        //     // GUI.DrawTexture
-        //     // GUIStyle background = new GUIStyle();
-        //     // background.normal.background = OutliveGUI.GetImage(0);
-        //     // OutliveGUI.DrawTexture(originalRect, OutliveGUI.GetImage(0));
-        //     // EditorGUILayout.
-        //     if (isOpen)
-        //         containerRect = PhotonGUI.ContainerBody(containerHeight);
-
-        //     if (reference)
-        //     {
-
-        //     }
-        //     else
-        //     {
-        //         serializedObject.Update ();
-        //         if(isOpen)
-        //             for (int i = 0; i < listProperty.arraySize; i++)
-        //             {
-        //                 SerializedProperty itemProperty = listProperty.GetArrayElementAtIndex(i);
-
-        //                 float collum = (containerRect.width - 32) / 5;
-        //                 Rect itemRect = new Rect(containerRect.xMin, containerRect.yMin + i * containerElementHeight, collum, containerElementHeight);
-
-        //                 if (itemProperty.objectReferenceValue is Player player)
-        //                 {
-        //                     EditorGUILayout.BeginHorizontal();
-
-        //                     SerializedObject playerSerialized = new SerializedObject(player);
-
-        //                     // Edição do nome do jogador
-        //                     Rect nameItemRect = new Rect(containerRect.xMin + collum * 0.25f, containerRect.yMin + containerElementHeight * i, collum, containerElementHeight);
-        //                     EditorGUI.LabelField(nameItemRect, "Nome: ");
-
-        //                     nameItemRect.xMin += collum;
-        //                     nameItemRect.xMax += collum;
-
-        //                     string newName = EditorGUI.TextField(nameItemRect, player.displayName, GUI.skin.textField);
-        //                     if (newName != player.displayName)
-        //                     {
-        //                         Undo.RecordObject(gameManager, "Desfazer mudança no nome do jogador");
-        //                         playerSerialized.FindProperty("_displayName").stringValue = newName;
-        //                         playerSerialized.ApplyModifiedProperties();
-        //                     }
-
-        //                     // Edição da cor do jogador
-
-        //                     Rect colorItemRect = new Rect(collum * 2.5f + containerRect.xMin, containerRect.yMin + containerElementHeight * i, collum, containerElementHeight);
-
-        //                     EditorGUI.LabelField(colorItemRect, "Cor: ");
-
-
-        //                     colorItemRect.xMin += collum;
-        //                     colorItemRect.xMax += collum;
-
-        //                     Color newColor = EditorGUI.ColorField(colorItemRect, player.color);
-        //                     if (newColor != player.color)
-        //                     {
-        //                         Undo.RecordObject(gameManager, "Desfazer mudança na cor do jogador");
-        //                         playerSerialized.FindProperty("_color").colorValue = newColor;
-        //                         playerSerialized.ApplyModifiedProperties();
-        //                         isChanged = true;
-        //                     }
-
-        //                     Rect removeItemRect = new Rect(containerRect.xMin + collum * 5f, itemRect.yMin + 2f, 32, containerElementHeight - 4f);
-
-        //                     if (GUI.Button(removeItemRect, "-", GUI.skin.button))
-        //                     {
-        //                         gameManager.RemoveItem(i);
-        //                         this.serializedObject.ApplyModifiedProperties();
-        //                         isChanged = true;
-        //                     }
-
-        //                     EditorGUILayout.EndHorizontal();
-        //                 }
-        //                 else
-        //                 {
-        //                     itemProperty.objectReferenceValue = new Player(gameManager, "index " + i, Color.black);
-        //                 }
-                        
-        //             }
-                        
-
-        //     }
-        //     EditorGUILayout.EndFoldoutHeaderGroup();
-
-        //     if (editable && isOpen)
-        //         if (PhotonGUI.AddButton())
-        //         {
-        //             listProperty.InsertArrayElementAtIndex(Mathf.Max(0, listProperty.arraySize - 1));
-        //             // this.serializedObject.ApplyModifiedProperties();
-
-
-        //             listProperty.GetArrayElementAtIndex(listProperty.arraySize - 1).objectReferenceValue = CreateInstance<Player>();//= new Player(gameManager, "Novo Jogador", Color.blue);
-        //             this.serializedObject.ApplyModifiedProperties();
-
-        //             SerializedObject newPlayerSerialized = new SerializedObject(listProperty.GetArrayElementAtIndex(listProperty.arraySize - 1).objectReferenceValue);
-        //             newPlayerSerialized.FindProperty("_inspectorGameManager").objectReferenceValue = gameManager;
-        //             newPlayerSerialized.ApplyModifiedProperties();
-        //             isChanged = true;
-        //             // Debug.Log(listProperty.GetArrayElementAtIndex(listProperty.arraySize - 1).objectReferenceValue);
-        //         }
-
-
-                
-        //     // this.serializedObject.ApplyModifiedProperties();
-        //     EditorGUI.EndDisabledGroup();
-
-
-
-        //     // EditorGUILayout.BeginVertical();
-        //     // EditorGUILayout.BeginHorizontal();
-        //     // EditorGUILayout.LabelField("Label");
-        //     // EditorGUILayout.LabelField("Label");
-        //     // // EditorGUILayout.BeginHorizontal();
-        //     // EditorGUILayout.LabelField("Label");
-        //     // EditorGUILayout.LabelField("Label");
-        //     // // EditorGUILayout.EndHorizontal();
-        //     // EditorGUILayout.EndHorizontal();
-        //     // EditorGUILayout.EndVertical();
-        // }
-
     }
 }
 

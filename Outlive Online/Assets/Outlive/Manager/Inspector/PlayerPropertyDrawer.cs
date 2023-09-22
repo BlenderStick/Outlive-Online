@@ -31,7 +31,10 @@ namespace Outlive.Manager.Inspector
             if (newName != _displayName.stringValue)
             {
                 GameManager manager = property.FindPropertyRelative("_inspectorGameManager").objectReferenceValue as GameManager;
-                _displayName.stringValue = manager.checkExistPlayerName(newName);
+                if (manager != null)
+                    _displayName.stringValue = manager.checkExistPlayerName(newName);
+                else
+                    _displayName.stringValue = newName;
             }
                 
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Outlive.Manager;
 using UnityEngine;
 
 namespace Outlive.Controller
@@ -8,31 +9,14 @@ namespace Outlive.Controller
     [Serializable]
     public class PlayerSelect
     {
-        [SerializeField, HideInInspector] private string[] _playerList = new string[] {"Undefined"};
-        [SerializeField, HideInInspector] private int _playerIndex = 0;
-        public void SetPlayerList(params string[] list)
-        {
-            _playerList = new string[list.Length + 1];
-            _playerList[0] = "Undefined";
-            for (int i = 0; i < list.Length; i++)
-            {
-                _playerList[i + 1] = list[i];
-            }
-        }
+        [SerializeField, HideInInspector] private string[] _playerList;
+        [SerializeField, HideInInspector] private int _playerIndex = -1;
 
-        public void UpdateName(string lastName, string newName)
-        {
-            for (int i = 1; i < _playerList.Length; i++)
-            {
-                if (_playerList[i] == lastName)
-                {
-                    _playerList[i] = newName;
-                    return;
-                }
-            }
-        }
+        public void SetPlayerList(Outlive.Manager.Player[] newPlayerList) => _playerList = Array.ConvertAll(newPlayerList, (param) =>{return param.displayName;});
 
-        public bool isPlayerUndefined => _playerIndex == 0;
+        public bool isPlayerUndefined => _playerIndex == -1;
+
+        public int PlayerIndex => _playerIndex;
 
         public string PlayerName
         {
@@ -42,7 +26,7 @@ namespace Outlive.Controller
             }
             get
             {
-                if (_playerIndex == 0)
+                if (_playerIndex == -1)
                     return null;
                 return _playerList[_playerIndex];
             }

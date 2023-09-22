@@ -15,17 +15,16 @@ using Outlive.Controller;
 namespace Outlive.Unit
 {
     [AddComponentMenu("Outlive/Unit/Unit"), ExecuteInEditMode]
-    public abstract class UnitGeneric : MonoBehaviour, ICommandableUnit, IGUIUnit, ISelectableUnit, IPlayerInjectable
+    public abstract class UnitGeneric : MonoBehaviour, ICommandableUnit, IGUIUnit, ISelectableUnit
     {
 
 #pragma warning disable 0649
         [SerializeField] private IUnitInteract[] _interacts;
-        [SerializeField] private PlayerSelect _player;
-        [SerializeField] private PlayerInjector _injector;
+        // [SerializeField] public PlayerSelect _player;
         [SerializeField] private UnityEvent<IPlayer> _updatePlayerDependency;
         [SerializeField] private UnityEvent<Color> _onColorChange;
 #pragma warning restore 0649
-        private IPlayer _playerProperty;
+        private IPlayer _player;
 
         private List<ICommand> _commands;
         private object _commandLock;
@@ -37,12 +36,12 @@ namespace Outlive.Unit
         {
             get
             {
-                return _playerProperty;
+                return _player;
             }
             set
             {
-                if(_playerProperty == null)
-                    _playerProperty = value;
+                if(_player == null)
+                    _player = value;
             }
         }
 
@@ -225,7 +224,7 @@ namespace Outlive.Unit
         {
             if (!Application.IsPlaying(gameObject))
             {
-                PlayerInjector injector = FindObjectOfType<PlayerInjector>();
+                PlayerInjector injector = FindFirstObjectByType<PlayerInjector>();
                 if (injector != null)
                     injector.AddInjectable(this);
             }
@@ -236,7 +235,7 @@ namespace Outlive.Unit
             if (Application.IsPlaying(gameObject))
                 return;
                 
-            PlayerInjector injector = FindObjectOfType<PlayerInjector>();
+            PlayerInjector injector = FindFirstObjectByType<PlayerInjector>();
             if (injector != null)
                 injector.RemoveInjectable(this);
             
@@ -251,7 +250,6 @@ namespace Outlive.Unit
             {
                 UnitDeselect();
             }
-            _injector.UpdateManager(this);
         }
 
         // Update is called once per frame
@@ -260,69 +258,5 @@ namespace Outlive.Unit
             if (Application.isPlaying)
                 UpdateCommand();
         }
-
-        #region Injectable
-
-        void IPlayerInjectable.OnInjectablePlayerListChange(IGameManager manager, string[] players)
-        {
-            _player.SetPlayerList(players);
-        }
-
-        void IPlayerInjectable.OnInjectablePlayerChange(IGameManager manager, string lastName, string currentName, Color lastColor, Color currentColor)
-        {
-            _player.UpdateName(lastName, currentName);
-
-            if (_player.isPlayerUndefined)
-            {
-                _onColorChange.Invoke(Color.white);
-                return;
-            }
-
-            if (_player.PlayerName == currentName)
-                _onColorChange.Invoke(currentColor);
-
-        }
-
-        void IPlayerInjectable.OnGameManagerStart(IGameManager manager)
-        {
-            if (_player.isPlayerUndefined)
-                return;
-                
-            _playerProperty = manager.GetPlayer(_player.PlayerName);
-            _updatePlayerDependency.Invoke(_playerProperty);
-        }
-
-        void IPlayerInjectable.OnInjectorSet(PlayerInjector injector)
-        {
-            _injector = injector;
-        }
-
-        internal void ForceInjectorUpdate()
-        {
-            if(_injector == null)
-            {
-                _player = new PlayerSelect();
-                _onColorChange.Invoke(Color.white);
-                return;
-            }
-                
-            if (!_player.isPlayerUndefined)
-                _injector.UpdateInjectable(this, _player.PlayerName);
-            else
-                _onColorChange.Invoke(Color.white);
-        }
-        /// <summary>
-        /// Força o carregamento da lista de nomes de jogadores criados no PlayerManager (Sim, essa é uma solução ruim e será refeita em breve)
-        /// </summary>
-        internal void LoadPlayerName()
-        {
-            if (_injector == null)
-                return;
-            
-            _injector.AddInjectable(_injector);
-        }
-
-
-        #endregion
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.UIElements;
 
 namespace Outlive.Manager.Inspector
 {
@@ -20,14 +21,19 @@ namespace Outlive.Manager.Inspector
             EditorGUILayout.PropertyField(_manager);
             EditorGUILayout.Separator();
             EditorGUILayout.PropertyField(_objectsToInjectPlayer);
-            // Rect _buttonRect = EditorGUI.RectField(Rect.zero, Rect.zero);
 
-            // EditorGUILayout.
+            GUILayout.BeginHorizontal();
 
+            if (GUILayout.Button("Clear"))
+            {
+                (target as PlayerInjector).ClearInjectables();
+            }
+            
             if (GUILayout.Button("Find All"))
             {
                 (target as PlayerInjector).FindAll();
             }
+            GUILayout.EndHorizontal();
 
             serializedObject.ApplyModifiedProperties();
             

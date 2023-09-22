@@ -6,11 +6,7 @@ namespace Outlive.Manager.Generic
 {
     public interface IPlayerInjectable
     {
-        void OnInjectablePlayerListChange(IGameManager manager, string[] players);
+        void OnLoadPlayerListChange(IGameManager manager, Player[] players);
 
-        void OnInjectablePlayerChange(IGameManager manager, string lastName, string currentName, Color lastColor, Color currentColor);
-        void OnGameManagerStart(IGameManager manager);
-
-        void OnInjectorSet(PlayerInjector injector);
     }
 }

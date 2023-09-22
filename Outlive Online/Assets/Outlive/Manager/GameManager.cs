@@ -10,6 +10,7 @@ using UnityEngine.Serialization;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEditor;
+using System.Linq;
 
 namespace Outlive.Manager
 { 
@@ -22,10 +23,8 @@ namespace Outlive.Manager
         [SerializeField, Description("Iniciará os players definidos no Inspector")] private bool _createDefaultPlayers = true;
 
         [SerializeField] private UnityEngine.Object[] _Object_Player;
+        [SerializeField] private Player _playerIndefinido;
         [SerializeField] private Player[] _players;
-        [SerializeField, HideInInspector] private string[] _current_player_name_list;
-        [SerializeField, HideInInspector] private Color[] _current_player_color_list;
-        [SerializeField, Header("Events")] private UnityEvent<PlayerChangeCallback> _onPlayerChange;
         [SerializeField, Header("Events")] private UnityEvent<PlayerListChangeCallback> _onPlayerListChange;
         [SerializeField, Header("Events")] private UnityEvent<IGameManager> _onGameManagerStart;
         private IPlayer[] _iPlayers;
@@ -34,7 +33,7 @@ namespace Outlive.Manager
         protected IList<GameObject>[] _playerObjects;
         protected ReaderWriterLock[] _playersRWLock;
         public bool isGameStarted {get; private set;}
-        public UnityEvent<PlayerChangeCallback> OnPlayerNameChange { get => _onPlayerChange;}
+        public IPlayer UndefinedPlayer => _playerIndefinido;
         public UnityEvent<PlayerListChangeCallback> OnPlayerListChange { get => _onPlayerListChange;}
         
         public UnityEvent<IGameManager> OnGameManagerStart { get => _onGameManagerStart;}
@@ -143,7 +142,7 @@ namespace Outlive.Manager
 
         public IPlayer GetPlayer(string name)
         {
-            foreach (IPlayer player in _iPlayers)
+            foreach (IPlayer player in _players)
             {
                 if (player.displayName.Equals(name))
                     return player;
@@ -251,52 +250,19 @@ namespace Outlive.Manager
         // Start is called before the first frame update
         void Start()
         {
-
+            foreach (var item in _playerObjects)
+            {
+                foreach (var item2 in item)
+                {
+                    Debug.Log(item2);
+                }
+            }
         }
 
         // Update is called once per frame
         void Update()
         {
 
-        }
-
-        internal void CheckListUpdate(bool force = false)
-        {
-            if (!force && _current_player_name_list.Length == _players.Length)
-                return;
-
-            _current_player_name_list = new string[_players.Length];
-            _current_player_color_list = new Color[_players.Length];
-            for (int i = 0; i < _players.Length; i++)
-            {
-                IPlayer player = _players[i];
-                _current_player_name_list[i] = player.displayName;
-                _current_player_color_list[i] = player.color;
-            }
-            FirePlayerListChange();
-        }
-
-        internal void CheckPlayersChange(bool force = false)
-        {
-            for (int i = 0; i < _players.Length; i++)
-            {
-                IPlayer player = _players[i];
-                string lastName = _current_player_name_list[i];
-                Color lastColor = _current_player_color_list[i];
-
-                if (force || player.displayName != lastName || player.color != lastColor)
-                    _onPlayerChange.Invoke(new PlayerChangeCallback(this, lastName, player.displayName, lastColor, player.color));
-                
-                _current_player_name_list[i] = player.displayName;
-                _current_player_color_list[i] = player.color;
-            }
-
-        }
-
-        internal void CheckUpdates(bool force = false)
-        {
-            CheckListUpdate(force);
-            CheckPlayersChange(force);
         }
 
         internal Player GetPlayerInEditor(string name)
@@ -321,25 +287,18 @@ namespace Outlive.Manager
 
         public void FirePlayerListChange()
         {
-            if (Application.isPlaying)
-            {
-                _onPlayerListChange.Invoke(new PlayerListChangeCallback(this, Array.ConvertAll(_iPlayers, player => player.displayName)));
-            }
-            else
-            {
-                _onPlayerListChange.Invoke(new PlayerListChangeCallback(this, _current_player_name_list));
-            }
+            _onPlayerListChange.Invoke(new PlayerListChangeCallback(this, _players));
         }
 
         public class PlayerListChangeCallback
         {
-            internal PlayerListChangeCallback(Generic.IGameManager manager, string[] players)
+            internal PlayerListChangeCallback(Generic.IGameManager manager, Player[] players)
             {
                 this.manager = manager;
                 this.players = players;
             }
             public Generic.IGameManager manager {get; private set;}
-            public string[] players {get; private set;}
+            public Player[] players {get; private set;}
 
         }
 

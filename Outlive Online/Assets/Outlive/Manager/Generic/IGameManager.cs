@@ -41,5 +41,7 @@ namespace Outlive.Manager.Generic
         IEnumerable<GameObject> PlayerObjects(IPlayer player);
         ///<summary> Verifica se o jogo foi iniciado </summary>
         bool isGameStarted{get;}
+        /// <summary>O Player que define a equipe das unidades que não tem uma equipe</summary>
+        IPlayer UndefinedPlayer { get; }
     }
 }
