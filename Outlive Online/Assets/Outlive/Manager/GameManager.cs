@@ -22,7 +22,6 @@ namespace Outlive.Manager
         [FormerlySerializedAs("autoStartGame"), SerializeField] private bool _autoStartGame = true;
         [SerializeField, Description("Iniciará os players definidos no Inspector")] private bool _createDefaultPlayers = true;
 
-        [SerializeField] private UnityEngine.Object[] _Object_Player;
         [SerializeField] private Player _playerIndefinido;
         [SerializeField] private Player[] _players;
         [SerializeField, Header("Events")] private UnityEvent<PlayerListChangeCallback> _onPlayerListChange;
@@ -152,40 +151,20 @@ namespace Outlive.Manager
         public IPlayer GetPlayer(int index)
         {
             if (index < 0)
-                return null;
+                return _playerIndefinido;
 
             if (!Application.isPlaying)
             {
-                if (_playerMode == PlayerMode.ManualCreate)
-                {
-                    if (index >= _players.Length)
-                        return null;
-                    return _players[index];
-                }
-                else
-                {
-                    if (index >= _Object_Player.Length)
-                        return null;
-                    UnityEngine.Object item = _Object_Player[index];
-                    if (item == null)
-                        return null;
-                    return (IPlayer) item;
-                }
+                if (index >= _players.Length)
+                    return null;
+                return _players[index];
             }
                 
             
-            if (index >= _iPlayers.Length)
+            if (index >= _players.Length)
                 return null;
 
             return _iPlayers[index];
-            // else
-            // {
-            //     if (index >= ReferencedPlayer.Count)
-            //         return null;
-
-            //     return ReferencedPlayer[index];
-            // }
-            
         }
 
         public bool UnitNotify(GameObject obj, IPlayer player)
@@ -235,10 +214,7 @@ namespace Outlive.Manager
         ///</summary>
         public void CreateDefaultPlayers()
         {
-            if (_playerMode == PlayerMode.ManualCreate)
-                CreatePlayers(_players);
-            else
-                CreatePlayers(_Object_Player);
+            CreatePlayers(_players);
 
             foreach (var item in _iPlayers)
             {

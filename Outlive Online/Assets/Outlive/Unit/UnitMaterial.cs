@@ -11,7 +11,6 @@ namespace Outlive.Unit
     {
         [SerializeField] private SkinnedMeshRenderer _skin;
         [SerializeField] private int _materialIndex;
-        [SerializeField] private Color _undefinedColor = Color.white;
 
         public void OnColorChange(Color color)
         {
@@ -24,8 +23,6 @@ namespace Outlive.Unit
 
             _skin.SetPropertyBlock(propertyBlock, _materialIndex);
         }
-
-        public void OnPlayerLoad(IPlayer player) => OnColorChange(player == null? _undefinedColor : player.color);
     }
 }
 

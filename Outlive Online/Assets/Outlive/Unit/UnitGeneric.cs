@@ -40,8 +40,23 @@ namespace Outlive.Unit
             }
             set
             {
-                if(_player == null)
-                    _player = value;
+                _player = value;
+                _onColorChange.Invoke(_player.color);
+                switch (_lastSelectionMode)
+                {
+                    case 1:
+                        UnitDeselect();
+                    break;
+                    case 2:
+                        UnitSelect();
+                    break;
+                    case 3:
+                        UnitHover();
+                    break;
+                    default:
+                        UnitNotHover();
+                    break;
+                }
             }
         }
 
@@ -101,6 +116,8 @@ namespace Outlive.Unit
             [SerializeField] private Color _normal;
             [SerializeField] private Color _selected;
             [SerializeField] private Color _hover;
+
+            private int _lastSelectionMode;
 #pragma warning restore 0649
 
             private bool selected;
@@ -110,6 +127,7 @@ namespace Outlive.Unit
                     return;
                 selection.color = player.color * _normal;
                 selected = false;
+                _lastSelectionMode = 1;
             }
 
             public void UnitSelect()
@@ -118,6 +136,8 @@ namespace Outlive.Unit
                     return;
                 selection.color = player.color * _selected;
                 selected = true;
+
+                _lastSelectionMode = 2;
             }
             public void UnitHover()
             {
@@ -125,6 +145,8 @@ namespace Outlive.Unit
                     return;
                 if (!selected)
                     selection.color = player.color * _hover;
+
+                _lastSelectionMode = 3;
                 // else
                 //     selection.color = player.color * _selected * _hover;
             }
@@ -137,6 +159,8 @@ namespace Outlive.Unit
                     selection.color = player.color * _selected;
                 else
                     selection.color = player.color * _normal;
+
+                _lastSelectionMode = 4;
             }
         #endregion
         

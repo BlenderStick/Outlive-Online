@@ -9,10 +9,10 @@ namespace Outlive.Controller
     [Serializable]
     public class PlayerSelect
     {
-        [SerializeField, HideInInspector] private string[] _playerList;
+        [SerializeField, HideInInspector] private string[] _playerList = {"Indefinido"};
         [SerializeField, HideInInspector] private int _playerIndex = -1;
 
-        public void SetPlayerList(Outlive.Manager.Player[] newPlayerList) => _playerList = Array.ConvertAll(newPlayerList, (param) =>{return param.displayName;});
+        public void SetPlayerList(Outlive.Manager.Generic.IPlayer[] newPlayerList) => _playerList = Array.ConvertAll(newPlayerList, (param) =>{return param.displayName;});
 
         public bool isPlayerUndefined => _playerIndex == -1;
 

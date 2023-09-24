@@ -8,6 +8,9 @@ using static Outlive.Manager.GameManager;
 using Outlive.Unit.Generic;
 using Outlive.Controller;
 using Outlive.Unit;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 
 namespace Outlive.Manager
 {
@@ -73,6 +76,9 @@ namespace Outlive.Manager
 
         internal void AddInjectable(Object injectable)
         {
+            if (_objectsToInjectPlayer.Contains(injectable))
+                return;
+                
             if (injectable is IPlayerInjectable)
                 _objectsToInjectPlayer.Add(injectable);
         }
@@ -84,7 +90,11 @@ namespace Outlive.Manager
 
         internal void ClearInjectables()
         {
-            // OnPlayerListChange(new PlayerListChangeCallback());
+            foreach (var item in _objectsToInjectPlayer)
+            {
+                if (item is IPlayerInjectable injectable)
+                    injectable.OnLoadPlayerListChange(_manager, new Player[0]);
+            }
             _objectsToInjectPlayer.Clear();
         }
     }

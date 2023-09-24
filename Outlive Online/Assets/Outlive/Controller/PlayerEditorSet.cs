@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Outlive.Controller;
 using Outlive.Manager;
 using Outlive.Manager.Generic;
+using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -17,33 +19,28 @@ public class PlayerEditorSet : MonoBehaviour, IPlayerInjectable
         if (Application.isPlaying)
             return;
 
-        PlayerInjector injector = FindAnyObjectByType<PlayerInjector>();
-        if (injector != null)
-            injector.AddInjectable(this);
+        
+        PlayerInjector injector = StageUtility.GetStageHandle(gameObject).FindComponentOfType<PlayerInjector>();
+        if (injector == null)
+            return;
+            
+        injector.AddInjectable(this);
     }
 
     private void OnDestroy() {
         if (Application.isPlaying)
             return;
 
-        PlayerInjector injector = FindAnyObjectByType<PlayerInjector>();
+        PlayerInjector injector = StageUtility.GetStageHandle(gameObject).FindComponentOfType<PlayerInjector>();
         if (injector != null)
             injector.RemoveInjectable(this);
     }
     public void OnLoadPlayerListChange(IGameManager manager, Outlive.Manager.Player[] players)
     {
         _playerSelect.SetPlayerList(players);
-        if(_playerSelect.isPlayerUndefined)
-        {
-            _onPlayerChange.Invoke((Outlive.Manager.Player) manager.UndefinedPlayer);
-            _onColor.Invoke(manager.UndefinedPlayer.color);
-            return;
-        }
 
-        string playerName = _playerSelect.PlayerName;
-        Color color = players[_playerSelect.PlayerIndex].color;
-        _onPlayerChange.Invoke(players[_playerSelect.PlayerIndex]);
-        _onColor.Invoke(color);
+        _onPlayerChange.Invoke((Outlive.Manager.Player) manager.GetPlayer(_playerSelect.PlayerIndex));
+        _onColor.Invoke(manager.GetPlayer(_playerSelect.PlayerIndex).color);
     }
 
     public class PlayerSetCallback

@@ -8,6 +8,14 @@ onBoardingDoNotAskAgain = true
 showPackageIndexes = false
 showStatusBar = false
 scopes = {
+	"picker_window_position_offset.0B486DF2" = "65;365;320;550"
+	"picker_search_text.0B486DF2" = ""
+	"last_search.0B486DF2" = ""
+	"OpenInspectorPreview.0B486DF2" = "0"
+	"currentGroup.0B486DF2" = null
+	"last_search.5A656512" = "ref=\"/Constructor\""
+	"OpenInspectorPreview.5A656512" = "0"
+	"currentGroup.5A656512" = "all"
 }
 providers = {
 	profilermarkers = {
